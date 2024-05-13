@@ -64,7 +64,6 @@ class MonthPickerCalendar extends ElementMixin(
         text-align: center;
         cursor: default;
         outline: none;
-
         height: var(--_month-button-height);
         line-height: var(--_month-button-height);
       }

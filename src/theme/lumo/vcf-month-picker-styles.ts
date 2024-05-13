@@ -52,28 +52,49 @@ registerStyles(
       -webkit-tap-highlight-color: transparent;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+
+      --_focus-ring-color: var(
+        --vaadin-focus-ring-color,
+        var(--lumo-primary-color-50pct)
+      );
+      --_focus-ring-width: var(--vaadin-focus-ring-width, 2px);
+    }
+
+    .header {
+      padding-bottom: var(--lumo-space-s);
+      font-size: var(--lumo-font-size-l);
+      font-weight: 500;
+      line-height: 1;
     }
 
     .yearButton {
       outline: none;
       border: none;
+      border-radius: var(--lumo-border-radius-s);
       background: none;
+      padding: 0;
+      height: var(--lumo-button-size, var(--lumo-size-m));
+      width: var(--lumo-button-size, var(--lumo-size-m));
+      color: var(--lumo-primary-color);
+    }
+
+    .yearButton:hover {
+      background: var(--lumo-primary-color-10pct);
+    }
+
+    .yearButton:focus {
+      box-shadow: 0 0 0 var(--_focus-ring-width) var(--_focus-ring-color);
+    }
+
+    .yearButton[disabled] {
+      color: var(--lumo-disabled-color);
     }
 
     .yearButton::before {
       font-family: 'lumo-icons';
       font-size: calc(var(--lumo-icon-size-m) * 1.25);
       text-align: center;
-      color: var(--lumo-contrast-60pct);
       cursor: var(--lumo-clickable-cursor);
-    }
-
-    .yearButton[disabled]::before {
-      color: var(--lumo-disabled-color);
-    }
-
-    .yearButton:focus::before {
-      color: var(--lumo-primary-color);
     }
 
     .prevYear::before {
@@ -85,19 +106,38 @@ registerStyles(
     }
 
     .month-button {
+      position: relative;
       border-radius: var(--lumo-border-radius-l);
-
       --_month-button-height: var(--lumo-size-m);
     }
 
+    .month-button::before {
+      content: '';
+      position: absolute;
+      z-index: -1;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: calc(100% - 6px);
+      height: calc(100% - 6px);
+      border-radius: var(--lumo-border-radius-m);
+    }
+
+    .month-button:hover::before {
+      background-color: var(--lumo-primary-color-10pct);
+    }
+
     .month-button:focus {
-      box-shadow: 0 0 0 2px var(--lumo-primary-color-50pct);
+      box-shadow: inset 0 0 0 var(--_focus-ring-width) var(--_focus-ring-color);
     }
 
     .month-button[selected] {
-      background: var(--lumo-primary-color);
       color: var(--lumo-base-color);
       font-weight: 600;
+    }
+
+    .month-button[selected]::before {
+      background: var(--lumo-primary-color);
     }
 
     .month-button[disabled] {
