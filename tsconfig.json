@@ -5,6 +5,7 @@
     "moduleResolution": "node",
     "noEmitOnError": true,
     "lib": ["es2017", "dom"],
+    "baseUrl": ".",
     "strict": true,
     "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
@@ -15,7 +16,9 @@
     "inlineSources": true,
     "rootDir": "./",
     "declaration": true,
-    "incremental": true
+    "incremental": true,
+    "skipLibCheck": true,
+    "allowJs": true,
   },
   "include": ["**/*.ts"]
 }
