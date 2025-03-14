@@ -9,7 +9,7 @@
   "module": "dist/src/index.js",
   "exports": {
     ".": "./dist/src/index.js",
-    "./vcf-month-picker.js": "./dist/src/vcf-month-picker.js"
+    "./dist/src/vcf-month-picker.js": "./dist/src/vcf-month-picker.js"
   },
   "scripts": {
     "analyze": "cem analyze --litelement",
