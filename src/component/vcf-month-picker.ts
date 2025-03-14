@@ -43,7 +43,7 @@ export class VcfMonthPicker extends ElementMixin(
   }
 
   static get version() {
-    return '0.1.0';
+    return '1.0.0';
   }
 
   @property({ type: String }) value = '';
@@ -116,7 +116,7 @@ export class VcfMonthPicker extends ElementMixin(
     super.update(props);
     this.overlay = this.overlay || this.shadowRoot!.querySelector('#overlay');
     if (this.overlay) {
-      this.overlay.requestContentUpdate()
+      this.overlay.requestContentUpdate();
     }
     this.calendar =
       this.calendar ||
@@ -265,5 +265,4 @@ export class VcfMonthPicker extends ElementMixin(
 
     this.opened = false;
   }
-
 }
