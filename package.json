@@ -1,5 +1,5 @@
 {
-  "name": "vcf-month-picker",
+  "name": "@vaadin-component-factory/vcf-month-picker",
   "description": "Webcomponent vcf-month-picker following open-wc recommendations",
   "license": "MIT",
   "author": "vcf-month-picker",
