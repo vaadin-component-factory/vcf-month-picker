@@ -47,6 +47,7 @@
     "@vaadin/component-base": "^24.6.6",
     "@vaadin/overlay": "^24.6.6",
     "@vaadin/text-field": "^24.6.6",
+    "@vaadin/tooltip": "^24.6.6",
     "@vaadin/vaadin-lumo-styles": "^24.6.6",
     "@vaadin/vaadin-themable-mixin": "^24.6.6",
     "lit": "^3.0.0"
@@ -83,6 +84,7 @@
     "rules": {
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": "error",
+      "import/no-duplicates": "off",
       "import/no-unresolved": "off",
       "import/extensions": [
         "error",

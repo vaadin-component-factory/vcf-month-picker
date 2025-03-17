@@ -2,25 +2,26 @@
  * @license
  * This program is available under Apache License Version 2.0
  */
-import { html, css, PropertyValues, LitElement, render } from 'lit';
-import { TextField } from '@vaadin/text-field/vaadin-text-field';
-import '@vaadin/text-field';
-import './vcf-month-picker-calendar.js';
-import './vcf-month-picker-overlay.js';
-import { Overlay } from '@vaadin/overlay/vaadin-overlay';
-import { property, query } from 'lit/decorators.js';
-
 import { ElementMixin } from '@vaadin/component-base/src/element-mixin.js';
 import { PolylitMixin } from '@vaadin/component-base/src/polylit-mixin.js';
+import { Overlay } from '@vaadin/overlay/vaadin-overlay';
+import '@vaadin/text-field';
+import { TextField } from '@vaadin/text-field/vaadin-text-field';
+import '@vaadin/tooltip';
 import { ThemableMixin } from '@vaadin/vaadin-themable-mixin/vaadin-themable-mixin.js';
+import { css, html, LitElement, PropertyValues, render } from 'lit';
+import { property, query } from 'lit/decorators.js';
+import './vcf-month-picker-calendar.js';
+import { MonthPickerCalendar } from './vcf-month-picker-calendar.js';
+import './vcf-month-picker-overlay.js';
 import {
   clickOnKey,
-  yearMonthToValue,
+  isInvalid,
   valueToYearMonth,
   YearMonth,
-  isInvalid,
+  yearMonthToValue,
 } from './vcf-month-picker-util.js';
-import { MonthPickerCalendar } from './vcf-month-picker-calendar.js';
+
 /**
  * `<vcf-month-picker>` is a web component for selecting year and month.
  *
@@ -66,7 +67,11 @@ export class VcfMonthPicker extends ElementMixin(
 
   @property({ type: Boolean }) invalid = false;
 
+  @property({ type: Boolean }) clearbutton = false;
+
   @property({ type: String }) errorMessage = false;
+
+  @property({ type: String }) tooltiptext = '';
 
   @property({ type: Array }) monthLabels = [
     'Jan',
@@ -113,6 +118,10 @@ export class VcfMonthPicker extends ElementMixin(
   }
 
   update(props: PropertyValues) {
+    const observer = new MutationObserver(() => {
+      this._updateSuffixStyles();
+    });
+    observer.observe(this.shadowRoot!, { childList: true, subtree: true });
     super.update(props);
     this.overlay = this.overlay || this.shadowRoot!.querySelector('#overlay');
     if (this.overlay) {
@@ -145,8 +154,13 @@ export class VcfMonthPicker extends ElementMixin(
         ?invalid=${this.invalid}
         .errorMessage=${this.errorMessage}
         ?required=${this.required}
+        ?clear-button-visible=${this.clearbutton}
       >
         <div part="toggle-button" slot="suffix"></div>
+        <vaadin-tooltip
+          slot="tooltip"
+          text=${this.tooltiptext}
+        ></vaadin-tooltip>
       </vaadin-text-field>
       <vcf-month-picker-overlay
         id="overlay"
@@ -158,6 +172,16 @@ export class VcfMonthPicker extends ElementMixin(
       >
       </vcf-month-picker-overlay>
     `;
+  }
+
+  _updateSuffixStyles() {
+    const suffixElement = this.textField?.shadowRoot
+      ?.querySelector('vaadin-input-container')
+      ?.shadowRoot?.querySelector('[name="suffix"]') as HTMLElement;
+    if (suffixElement) {
+      suffixElement.style.display = 'flex';
+      suffixElement.style.flexDirection = 'row-reverse';
+    }
   }
 
   /**
