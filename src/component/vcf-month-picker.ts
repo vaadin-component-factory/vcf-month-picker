@@ -124,7 +124,7 @@ export class VcfMonthPicker extends ElementMixin(
     observer.observe(this.shadowRoot!, { childList: true, subtree: true });
     super.update(props);
     this.overlay = this.overlay || this.shadowRoot!.querySelector('#overlay');
-    if (this.overlay) {
+    if (this.overlay?.shadowRoot) {
       this.overlay.requestContentUpdate();
     }
     this.calendar =
