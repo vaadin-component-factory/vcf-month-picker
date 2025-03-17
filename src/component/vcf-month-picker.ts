@@ -254,7 +254,7 @@ export class VcfMonthPicker extends ElementMixin(
       .monthLabels=${this.monthLabels}
       @month-clicked=${(e: CustomEvent) => {
         this.__dispatchChange = true;
-        this.value = this.value === e.detail ? '' : e.detail;
+        this.value = e.detail;
         this.opened = false;
       }}
     ></vcf-month-picker-calendar>`;
