@@ -122,14 +122,15 @@ export class VcfMonthPicker extends ElementMixin(
       this._updateSuffixStyles();
     });
     observer.observe(this.shadowRoot!, { childList: true, subtree: true });
+
     super.update(props);
+
     this.overlay = this.overlay || this.shadowRoot!.querySelector('#overlay');
+
     if (this.overlay?.shadowRoot) {
       this.overlay.requestContentUpdate();
     }
-    this.calendar =
-      this.calendar ||
-      this.shadowRoot!.querySelector('vcf-month-picker-calendar');
+
     // todo this can't be a calculated value since it can be set on the server side (binder)
     this.invalid = isInvalid(this.value, this.min, this.max);
 
@@ -259,6 +260,12 @@ export class VcfMonthPicker extends ElementMixin(
       }}
     ></vcf-month-picker-calendar>`;
     render(content, root);
+    this.__initializeCalendar();
+  }
+
+  private __initializeCalendar() {
+    this.calendar =
+      this.calendar || this.overlay!.querySelector('vcf-month-picker-calendar');
   }
 
   private __updateOpenedYear() {
