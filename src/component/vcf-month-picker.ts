@@ -67,11 +67,19 @@ export class VcfMonthPicker extends ElementMixin(
 
   @property({ type: Boolean }) invalid = false;
 
-  @property({ type: Boolean }) clearbutton = false;
+  /**
+   * Set to true to make clear button visible.
+   * @attr {boolen} clear-button
+   */
+  @property({ type: Boolean }) clearButton = false;
 
   @property({ type: String }) errorMessage = false;
 
-  @property({ type: String }) tooltiptext = '';
+  /**
+   * To set the tooltip text when needed.
+   * @attr {string} tooltip-text
+   */
+  @property({ type: String }) tooltipText = '';
 
   @property({ type: Object })
   i18n = {
@@ -190,7 +198,7 @@ export class VcfMonthPicker extends ElementMixin(
         ?invalid=${this.invalid}
         .errorMessage=${this.errorMessage}
         ?required=${this.required}
-        ?clear-button-visible=${this.clearbutton}
+        ?clear-button-visible=${this.clearButton}
         autocomplete="off"
       >
         <div
@@ -201,7 +209,7 @@ export class VcfMonthPicker extends ElementMixin(
         ></div>
         <vaadin-tooltip
           slot="tooltip"
-          text=${this.tooltiptext}
+          text=${this.tooltipText}
         ></vaadin-tooltip>
       </vaadin-text-field>
       <vcf-month-picker-overlay
