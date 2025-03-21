@@ -73,7 +73,7 @@ export class VcfMonthPicker extends ElementMixin(
    */
   @property({ type: Boolean }) clearButton = false;
 
-  @property({ type: String }) errorMessage = false;
+  @property({ type: String }) errorMessage = '';
 
   /**
    * To set the tooltip text when needed.
