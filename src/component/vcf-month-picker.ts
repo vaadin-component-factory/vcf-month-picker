@@ -4,7 +4,7 @@
  */
 import { ElementMixin } from '@vaadin/component-base/src/element-mixin.js';
 import { PolylitMixin } from '@vaadin/component-base/src/polylit-mixin.js';
-import { Overlay } from '@vaadin/overlay/vaadin-overlay';
+import { Overlay, OverlayCloseEvent } from '@vaadin/overlay/vaadin-overlay';
 import '@vaadin/text-field';
 import { TextField } from '@vaadin/text-field/vaadin-text-field';
 import '@vaadin/tooltip';
@@ -73,20 +73,37 @@ export class VcfMonthPicker extends ElementMixin(
 
   @property({ type: String }) tooltiptext = '';
 
-  @property({ type: Array }) monthLabels = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
+  @property({ type: Object })
+  i18n = {
+    monthNames: [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ],
+    monthLabels: [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ],
+  };
 
   @query('#textField') private textField?: TextField;
 
@@ -140,6 +157,18 @@ export class VcfMonthPicker extends ElementMixin(
     }
   }
 
+  ready() {
+    super.ready();
+
+    // add accessibility attributes to the text field
+    this.textField?.setAttribute('role', 'combobox');
+    this.textField?.setAttribute('aria-haspopup', 'dialog');
+    this.textField?.setAttribute(
+      'aria-expanded',
+      this.opened ? 'true' : 'false'
+    );
+  }
+
   render() {
     return html`
       <vaadin-text-field
@@ -156,8 +185,9 @@ export class VcfMonthPicker extends ElementMixin(
         .errorMessage=${this.errorMessage}
         ?required=${this.required}
         ?clear-button-visible=${this.clearbutton}
+        autocomplete="off"
       >
-        <div part="toggle-button" slot="suffix"></div>
+        <div part="toggle-button" slot="suffix" aria-hidden="true"></div>
         <vaadin-tooltip
           slot="tooltip"
           text=${this.tooltiptext}
@@ -167,9 +197,13 @@ export class VcfMonthPicker extends ElementMixin(
         id="overlay"
         .positionTarget=${this.textField}
         no-vertical-overlap
+        restore-focus-on-close
+        .restoreFocusNode=${this.textField?.inputElement}
+        focus-trap
         .opened=${this.opened}
         @opened-changed=${this.__boundOverlayOpenedChanged}
         .renderer=${this.__boundRenderOverlay}
+        @vaadin-overlay-close="${this._onVaadinOverlayClose}"
       >
       </vcf-month-picker-overlay>
     `;
@@ -182,6 +216,15 @@ export class VcfMonthPicker extends ElementMixin(
     if (suffixElement) {
       suffixElement.style.display = 'flex';
       suffixElement.style.flexDirection = 'row-reverse';
+    }
+  }
+
+  _onVaadinOverlayClose(e: OverlayCloseEvent) {
+    if (
+      e.detail.sourceEvent &&
+      e.detail.sourceEvent.composedPath().includes(this)
+    ) {
+      e.preventDefault();
     }
   }
 
@@ -244,6 +287,10 @@ export class VcfMonthPicker extends ElementMixin(
   private __overlayOpenedChanged(e: CustomEvent) {
     const opened = e.detail.value;
     this.opened = opened;
+    this.textField?.setAttribute(
+      'aria-expanded',
+      this.opened ? 'true' : 'false'
+    );
     this.__updateOpenedYear();
   }
 
@@ -252,7 +299,7 @@ export class VcfMonthPicker extends ElementMixin(
       .value=${this.value}
       .min=${this.min}
       .max=${this.max}
-      .monthLabels=${this.monthLabels}
+      .i18n=${this.i18n}
       @month-clicked=${(e: CustomEvent) => {
         this.__dispatchChange = true;
         this.value = e.detail;

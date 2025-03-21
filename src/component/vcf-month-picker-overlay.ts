@@ -1,4 +1,4 @@
-import { Overlay } from '@vaadin/overlay';
+import { Overlay } from '@vaadin/overlay/vaadin-overlay';
 import '@vaadin/overlay';
 import { PositionMixin } from '@vaadin/overlay/src/vaadin-overlay-position-mixin';
 
