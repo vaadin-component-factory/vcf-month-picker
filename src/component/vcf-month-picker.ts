@@ -105,6 +105,12 @@ export class VcfMonthPicker extends ElementMixin(
     ],
   };
 
+  /**
+   * Set true to prevent the overlay from opening automatically.
+   * @attr {boolean} auto-open-disabled
+   */
+  @property({ type: Boolean }) autoOpenDisabled = false;
+
   @query('#textField') private textField?: TextField;
 
   // Can't use @query for overlay, because it will be teleported to body
@@ -187,7 +193,12 @@ export class VcfMonthPicker extends ElementMixin(
         ?clear-button-visible=${this.clearbutton}
         autocomplete="off"
       >
-        <div part="toggle-button" slot="suffix" aria-hidden="true"></div>
+        <div
+          part="toggle-button"
+          slot="suffix"
+          aria-hidden="true"
+          @click="${this.__toggle}"
+        ></div>
         <vaadin-tooltip
           slot="tooltip"
           text=${this.tooltiptext}
@@ -263,10 +274,26 @@ export class VcfMonthPicker extends ElementMixin(
     return valueToYearMonth(this.value);
   }
 
-  private __inputClicked() {
-    if (!this.disabled && !this.readonly) {
-      this.opened = !this.opened;
+  private __inputClicked(event: Event) {
+    if (!this.__isClearButton(event)) {
+      if (!this.autoOpenDisabled) {
+        if (!this.disabled && !this.readonly) {
+          this.opened = !this.opened;
+        }
+      }
     }
+  }
+
+  private __isClearButton(event: Event) {
+    return (
+      event.composedPath()[0] ===
+      this.textField?.shadowRoot?.querySelector('#clearButton')
+    );
+  }
+
+  private __toggle(e: Event) {
+    e.stopPropagation();
+    this.opened = !this.opened;
   }
 
   private __inputValueChanged() {
