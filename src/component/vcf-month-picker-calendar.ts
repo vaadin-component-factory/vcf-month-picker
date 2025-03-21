@@ -41,7 +41,7 @@ class MonthPickerCalendar extends ElementMixin(
     monthLabels: [],
   };
 
-  @property({ type: Number }) openedYear = 2020;
+  @property({ type: Number }) openedYear = new Date().getFullYear();
 
   @property({ type: String }) min: string | null = null;
 
