@@ -45,6 +45,13 @@ registerStyles(
     [part='toggle-button']:hover {
       color: var(--lumo-body-text-color);
     }
+    :host([readonly]) [part='toggle-button'] {
+      color: var(--lumo-contrast-20pct);
+      cursor: default;
+    }
+    :host([readonly]) {
+      pointer-events: none;
+    }
   `
 );
 
