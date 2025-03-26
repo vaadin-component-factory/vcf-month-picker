@@ -16,7 +16,7 @@ import { MonthPickerCalendar } from './vcf-month-picker-calendar.js';
 import './vcf-month-picker-overlay.js';
 import {
   clickOnKey,
-  isInvalid,
+  monthAllowed,
   valueToYearMonth,
   YearMonth,
   yearMonthToValue,
@@ -51,9 +51,9 @@ export class VcfMonthPicker extends ElementMixin(
 
   @property({ type: Boolean }) opened = false;
 
-  @property({ type: String }) min: string | null = null;
+  @property({ type: String }) minYear: string | null = null;
 
-  @property({ type: String }) max: string | null = null;
+  @property({ type: String }) maxYear: string | null = null;
 
   @property({ type: String }) label = '';
 
@@ -136,6 +136,8 @@ export class VcfMonthPicker extends ElementMixin(
 
   private __dispatchChange = false;
 
+  private __keepInputValue = false;
+
   static get styles() {
     return css`
       :host {
@@ -162,9 +164,6 @@ export class VcfMonthPicker extends ElementMixin(
       this.overlay.requestContentUpdate();
     }
 
-    // todo this can't be a calculated value since it can be set on the server side (binder)
-    this.invalid = isInvalid(this.value, this.min, this.max);
-
     if (this.__dispatchChange && props.has('value')) {
       this.dispatchEvent(new CustomEvent('change', { bubbles: true }));
       this.__dispatchChange = false;
@@ -187,7 +186,7 @@ export class VcfMonthPicker extends ElementMixin(
     return html`
       <vaadin-text-field
         id="textField"
-        value=${this.formattedValue}
+        value=${this.inputValue}
         @click=${this.__boundInputClicked}
         @keydown=${(e: KeyboardEvent) => clickOnKey(e, ' ', 'ArrowDown')}
         @change=${this.__boundInputValueChanged}
@@ -282,6 +281,12 @@ export class VcfMonthPicker extends ElementMixin(
     return valueToYearMonth(this.value);
   }
 
+  get inputValue() {
+    return this.__keepInputValue && this.invalid
+      ? this.textField?.value
+      : this.formattedValue;
+  }
+
   private __inputClicked(event: Event) {
     if (!this.__isClearButton(event)) {
       if (!this.autoOpenDisabled) {
@@ -308,15 +313,50 @@ export class VcfMonthPicker extends ElementMixin(
     if (this.textField) {
       const inputValue = this.textField.value;
       const yearMonth = VcfMonthPicker.parseValue(inputValue);
-      this.__dispatchChange = true;
-      if (yearMonth) {
-        this.value = yearMonthToValue(yearMonth);
-      } else {
-        this.textField.value = '';
-        this.value = '';
-      }
+      const selectedValue =
+        yearMonth !== null ? yearMonthToValue(yearMonth!) : '';
+      this.__commitChanges(inputValue, yearMonth!, selectedValue);
     }
     this.__updateOpenedYear();
+  }
+
+  private __commitChanges(
+    inputValue: string,
+    yearMonth: YearMonth,
+    selectedValue: string
+  ) {
+    const isValid = this.checkValidity(inputValue, yearMonth!, selectedValue);
+    this.invalid = !isValid;
+    this.textField!.invalid = !isValid;
+
+    if (isValid) {
+      this.__dispatchChange = true;
+      this.__keepInputValue = false;
+      if (selectedValue) {
+        this.value = selectedValue;
+      } else {
+        this.textField!.value = '';
+        this.value = '';
+      }
+    } else {
+      this.__keepInputValue = true;
+      this.textField!.value = inputValue;
+      this.value = '';
+    }
+  }
+
+  checkValidity(
+    inputValue: string,
+    yearMonth: YearMonth,
+    selectedValue: string
+  ) {
+    const inputValid =
+      !inputValue ||
+      (!!selectedValue &&
+        inputValue === VcfMonthPicker.formatValue(yearMonth!));
+    const isMonthValid =
+      !selectedValue || monthAllowed(selectedValue, this.minYear, this.maxYear);
+    return inputValid && isMonthValid;
   }
 
   private __overlayOpenedChanged(e: CustomEvent) {
@@ -332,17 +372,28 @@ export class VcfMonthPicker extends ElementMixin(
   private __renderOverlay(root: HTMLElement) {
     const content = html` <vcf-month-picker-calendar
       .value=${this.value}
-      .min=${this.min}
-      .max=${this.max}
+      .minYear=${this.minYear}
+      .maxYear=${this.maxYear}
       .i18n=${this.i18n}
       @month-clicked=${(e: CustomEvent) => {
-        this.__dispatchChange = true;
-        this.value = e.detail;
-        this.opened = false;
+        this._onMonthClicked(e.detail);
       }}
     ></vcf-month-picker-calendar>`;
     render(content, root);
     this.__initializeCalendar();
+  }
+
+  private _onMonthClicked(selectedValue: string) {
+    this.opened = false;
+    this._commitMonthClickedChanges(selectedValue);
+  }
+
+  private _commitMonthClickedChanges(selectedValue: string) {
+    if (this.value !== selectedValue) {
+      const yearMonth = valueToYearMonth(selectedValue);
+      const inputValue = VcfMonthPicker.formatValue(yearMonth!);
+      this.__commitChanges(inputValue, yearMonth!, selectedValue);
+    }
   }
 
   private __initializeCalendar() {
@@ -363,9 +414,13 @@ export class VcfMonthPicker extends ElementMixin(
         const yearNow = new Date().getFullYear();
 
         const adjustByMin = (year: number) =>
-          this.min ? Math.max(year, valueToYearMonth(this.min)!.year) : year;
+          this.minYear
+            ? Math.max(year, valueToYearMonth(this.minYear)!.year)
+            : year;
         const adjustByMax = (year: number) =>
-          this.max ? Math.min(year, valueToYearMonth(this.max)!.year) : year;
+          this.maxYear
+            ? Math.min(year, valueToYearMonth(this.maxYear)!.year)
+            : year;
 
         this.calendar.openedYear = adjustByMax(adjustByMin(yearNow));
       }

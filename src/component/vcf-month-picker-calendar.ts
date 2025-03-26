@@ -10,7 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import {
   clickOnKey,
   isInvalid,
-  valueToYearMonth,
+  isYearDisabled,
   yearMonthToValue,
 } from './vcf-month-picker-util.js';
 
@@ -43,9 +43,9 @@ class MonthPickerCalendar extends ElementMixin(
 
   @property({ type: Number }) openedYear = new Date().getFullYear();
 
-  @property({ type: String }) min: string | null = null;
+  @property({ type: String }) minYear: string | null = null;
 
-  @property({ type: String }) max: string | null = null;
+  @property({ type: String }) maxYear: string | null = null;
 
   static get styles() {
     return css`
@@ -130,7 +130,7 @@ class MonthPickerCalendar extends ElementMixin(
           }))
           .map(props => ({
             ...props,
-            disabled: isInvalid(props.value, this.min, this.max),
+            disabled: isInvalid(props.value, this.minYear, this.maxYear),
             selected: this.value === props.value,
           }))
           .map(({ content, value, monthIndex, disabled, selected }) => {
@@ -162,19 +162,12 @@ class MonthPickerCalendar extends ElementMixin(
       </div>`;
   }
 
-  private __isYearDisabled(year: number) {
-    return (
-      (this.min && year < valueToYearMonth(this.min)!.year) ||
-      (this.max && year > valueToYearMonth(this.max)!.year)
-    );
-  }
-
   private __IsPrevYearDisabled() {
-    return this.__isYearDisabled(this.openedYear - 1);
+    return isYearDisabled(this.openedYear - 1, this.minYear, this.maxYear);
   }
 
   private __IsNextYearDisabled() {
-    return this.__isYearDisabled(this.openedYear + 1);
+    return isYearDisabled(this.openedYear + 1, this.minYear, this.maxYear);
   }
 
   private __computeMonthTabIndex(selected: boolean) {

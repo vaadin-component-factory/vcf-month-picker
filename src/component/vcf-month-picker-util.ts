@@ -29,6 +29,32 @@ export function isInvalid(
   );
 }
 
+export function isYearDisabled(
+  year: number,
+  minYear: string | null,
+  maxYear: string | null
+): boolean {
+  return (
+    (minYear !== null &&
+      minYear.length > 0 &&
+      year < valueToYearMonth(minYear)!.year) ||
+    (maxYear !== null &&
+      maxYear.length > 0 &&
+      year > valueToYearMonth(maxYear)!.year)
+  );
+}
+
+export function monthAllowed(
+  value: string,
+  minYear: string | null,
+  maxYear: string | null
+): boolean {
+  const invalid = isInvalid(value, minYear, maxYear);
+  const year = valueToYearMonth(value)?.year;
+  const disabled = isYearDisabled(year!, minYear, maxYear);
+  return !invalid && !disabled;
+}
+
 export function clickOnKey(event: KeyboardEvent, ...keys: string[]) {
   if (keys.includes(event.key) && event.target instanceof HTMLElement) {
     event.preventDefault();
