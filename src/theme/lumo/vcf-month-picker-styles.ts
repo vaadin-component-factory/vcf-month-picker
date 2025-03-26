@@ -13,9 +13,15 @@ registerStyles(
   'vcf-month-picker',
   css`
     :host {
+      --vcf-month-picker-font-family: var(--lumo-font-family);
+      --vcf-month-picker-font-size: var(--lumo-font-size-m);
+      --vcf-month-picker-icons-font-family: 'lumo-icons';
+      --vcf-month-picker-toggle-calendar-icon: var(--lumo-icons-calendar);
+      --vcf-month-picker-icon-size: var(--lumo-icon-size-m);
+
       box-sizing: border-box;
-      font-family: var(--material-font-family);
-      font-size: var(--material-body-font-size);
+      font-family: var(--vcf-month-picker-font-family);
+      font-size: var(--vcf-month-picker-font-size);
       -webkit-tap-highlight-color: transparent;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -25,7 +31,7 @@ registerStyles(
       width: 1em;
       height: 1em;
       line-height: 1;
-      font-size: var(--lumo-icon-size-m);
+      font-size: var(--vcf-month-picker-icon-size);
       text-align: center;
       color: var(--lumo-contrast-60pct);
       transition: 0.2s color;
@@ -33,8 +39,8 @@ registerStyles(
     }
     [part='toggle-button']::before {
       display: block;
-      font-family: 'lumo-icons';
-      content: var(--lumo-icons-calendar);
+      font-family: var(--vcf-month-picker-icons-font-family);
+      content: var(--vcf-month-picker-toggle-calendar-icon);
     }
     [part='toggle-button']:hover {
       color: var(--lumo-body-text-color);
@@ -46,9 +52,20 @@ registerStyles(
   'vcf-month-picker-calendar',
   css`
     :host {
+      --vcf-month-picker-calendar-font-family: var(--lumo-font-family);
+      --vcf-month-picker-calendar-font-size: var(--lumo-font-size-m);
+      --vcf-month-picker-calendar-icons-font-family: 'lumo-icons';
+      --vcf-month-picker-calendar-prev-year-icon: var(
+        --lumo-icons-chevron-left
+      );
+      --vcf-month-picker-calendar-next-year-icon: var(
+        --lumo-icons-chevron-right
+      );
+      --vcf-month-picker-calendar-icon-size: var(--lumo-icon-size-m);
+
       box-sizing: border-box;
-      font-family: var(--material-font-family);
-      font-size: var(--material-body-font-size);
+      font-family: var(--vcf-month-picker-calendar-font-family);
+      font-size: var(--vcf-month-picker-calendar-font-size);
       -webkit-tap-highlight-color: transparent;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -91,18 +108,18 @@ registerStyles(
     }
 
     .yearButton::before {
-      font-family: 'lumo-icons';
-      font-size: calc(var(--lumo-icon-size-m) * 1.25);
+      font-family: var(--vcf-month-picker-calendar-icons-font-family);
+      font-size: calc(var(--vcf-month-picker-calendar-icon-size) * 1.25);
       text-align: center;
       cursor: var(--lumo-clickable-cursor);
     }
 
     .prevYear::before {
-      content: var(--lumo-icons-chevron-left);
+      content: var(--vcf-month-picker-calendar-prev-year-icon);
     }
 
     .nextYear::before {
-      content: var(--lumo-icons-chevron-right);
+      content: var(--vcf-month-picker-calendar-next-year-icon);
     }
 
     .month-button {
