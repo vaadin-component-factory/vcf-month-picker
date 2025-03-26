@@ -188,6 +188,12 @@ export class VcfMonthPicker extends ElementMixin(
     );
   }
 
+  protected firstUpdated() {
+    if (this.value) {
+      this.__boundInputValueChanged();
+    }
+  }
+
   render() {
     return html`
       <vaadin-text-field
