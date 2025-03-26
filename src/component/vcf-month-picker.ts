@@ -226,7 +226,9 @@ export class VcfMonthPicker extends ElementMixin(
       </vaadin-text-field>
       <vcf-month-picker-overlay
         id="overlay"
-        .positionTarget=${this.textField}
+        .positionTarget=${this.textField?.shadowRoot?.querySelector(
+          '[part="input-field"]'
+        ) as HTMLInputElement}
         no-vertical-overlap
         restore-focus-on-close
         .restoreFocusNode=${this.textField?.inputElement}
