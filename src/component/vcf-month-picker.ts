@@ -119,6 +119,12 @@ export class VcfMonthPicker extends ElementMixin(
    */
   @property({ type: Boolean }) autoOpenDisabled = false;
 
+  /**
+   * To set the helper text when needed.
+   * @attr {string} helper-text
+   */
+  @property({ type: String }) helperText = '';
+
   @query('#textField') private textField?: TextField;
 
   // Can't use @query for overlay, because it will be teleported to body
@@ -199,6 +205,7 @@ export class VcfMonthPicker extends ElementMixin(
         ?required=${this.required}
         ?clear-button-visible=${this.clearButton}
         autocomplete="off"
+        helper-text=${this.helperText}
       >
         <div
           part="toggle-button"
