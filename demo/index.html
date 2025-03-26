@@ -5,6 +5,20 @@
   <style>
     body {
       background: #fafafa;
+      font-family: var(--lumo-font-family);
+      padding-top: 15px;
+    }
+    h2 {
+      margin-bottom: 0;
+      margin-top: 0;
+    }
+    hr {
+      width: 800px;
+    }
+    .centered {
+      max-width: 800px;
+      margin: auto;
+      padding: 15px;
     }
   </style>
 </head>
@@ -17,8 +31,52 @@
 
     render(
       html`
-        <vcf-month-picker>
+        <div id="basic" class="centered">
+        <h2>Month Picker - Basic Use</h2>
+        <vcf-month-picker label="Month Picker" placeholder="Select a month" clear-button>
         </vcf-month-picker>
+        </div>
+        
+        <hr />
+        <div id="auto-open-disabled" class="centered">
+        <h2>Month Picker - With auto open disabled </h2>
+        <vcf-month-picker label="Month Picker" auto-open-disabled>
+        </vcf-month-picker>
+        </div>
+
+        <hr />
+        <div id="min-max" class="centered">
+        <h2>Month Picker - With min and max year </h2>
+        <vcf-month-picker label="Month Picker" min-year="2020" max-year="2026" helper-text="Min year: 2020 & Max year: 2026">
+        </vcf-month-picker>
+        </div>
+
+        <hr />
+        <div id="i18n-spanish" class="centered">
+        <h2>Month Picker - With months in Spanish </h2>
+        <vcf-month-picker label="Month Picker"   
+        .i18n=${{
+          monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+               'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+          monthLabels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+        }} >
+        </vcf-month-picker>
+        </div>
+
+        <hr />
+        <div id="invalid" class="centered">
+        <h2>Month Picker - With invalid value </h2>
+        <vcf-month-picker label="Month Picker" value="2019-06" min-year="2020" max-year="2026" helper-text="Min year: 2020 & Max year: 2026. If you enter a date outside that range, an error message will be shown."
+        error-message="Month is outside of year range">
+        </vcf-month-picker>
+        </div>
+
+        <hr />
+        <div id="readonly" class="centered">
+        <h2>Month Picker - Readonly </h2>
+        <vcf-month-picker label="Month Picker" value="2019-06" readonly>
+        </vcf-month-picker>
+        </div>
       `,
       document.querySelector('#demo')
     );
