@@ -177,6 +177,14 @@ registerStyles(
       padding: var(--lumo-space-s);
     }
 
+    :host([bottom-aligned]) [part~='overlay'] {
+      margin-bottom: var(--lumo-space-xs);
+    }
+
+    :host([top-aligned]) [part~='overlay'] {
+      margin-top: var(--lumo-space-xs);
+    }
+
     @media (max-width: 420px), (max-height: 420px) {
       [part='content'] {
         -webkit-mask-image: none;
