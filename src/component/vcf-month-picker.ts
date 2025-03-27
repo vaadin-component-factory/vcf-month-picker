@@ -115,9 +115,9 @@ export class VcfMonthPicker extends ElementMixin(
 
   /**
    * Set to true to make clear button visible.
-   * @attr {boolen} clear-button
+   * @attr {boolen} clear-button-visible
    */
-  @property({ type: Boolean }) clearButton = false;
+  @property({ type: Boolean }) clearButtonVisible = false;
 
   /**
    * The error message to show.
@@ -261,7 +261,7 @@ export class VcfMonthPicker extends ElementMixin(
         ?invalid=${this.invalid}
         .errorMessage=${this.errorMessage}
         ?required=${this.required}
-        ?clear-button-visible=${this.clearButton}
+        ?clear-button-visible=${this.clearButtonVisible}
         autocomplete="off"
         helper-text=${this.helperText}
       >
