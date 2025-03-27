@@ -1,8 +1,8 @@
 {
   "name": "@vaadin-component-factory/vcf-month-picker",
-  "description": "Webcomponent vcf-month-picker following open-wc recommendations",
-  "license": "MIT",
-  "author": "vcf-month-picker",
+  "description": "Web component for selecting year and month",
+  "license": "Apache License 2.0",
+  "author": "Vaadin Ltd",
   "version": "1.0.0",
   "type": "module",
   "main": "dist/src/index.js",
