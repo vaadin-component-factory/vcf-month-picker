@@ -185,10 +185,6 @@ class MonthPickerCalendar extends ElementMixin(
     return isYearDisabled(this.openedYear + 1, this.minYear, this.maxYear);
   }
 
-  private __computeMonthTabIndex(selected: boolean) {
-    return this.value === null ? '0' : selected ? '0' : '-1';
-  }
-
   /**
    * Handles keyboard navigation for month selection.
    */
