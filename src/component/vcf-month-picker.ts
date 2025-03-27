@@ -47,24 +47,56 @@ export class VcfMonthPicker extends ElementMixin(
     return '1.0.0';
   }
 
+  /**
+   * The selected month in `YYYY-MM` format.
+   */
   @property({ type: String }) value = '';
 
+  /**
+   * Whether the month picker overlay is open.
+   */
   @property({ type: Boolean }) opened = false;
 
+  /**
+   * The minimum selectable year.
+   * @attr {boolen} min-year
+   */
   @property({ type: String }) minYear: string | null = null;
 
+  /**
+   * The maximum selectable year.
+   * @attr {boolen} max-year
+   */
   @property({ type: String }) maxYear: string | null = null;
 
+  /**
+   * The label for the input field.
+   */
   @property({ type: String }) label = '';
 
+  /**
+   * The placeholder text.
+   */
   @property({ type: String }) placeholder = '';
 
+  /**
+   * Whether the component is disabled.
+   */
   @property({ type: Boolean }) disabled = false;
 
+  /**
+   * Whether the component is readonly.
+   */
   @property({ type: Boolean }) readonly = false;
 
+  /**
+   * Whether a value is required.
+   */
   @property({ type: Boolean }) required = false;
 
+  /**
+   * Whether the value is invalid.
+   */
   @property({ type: Boolean }) invalid = false;
 
   /**
@@ -73,6 +105,9 @@ export class VcfMonthPicker extends ElementMixin(
    */
   @property({ type: Boolean }) clearButton = false;
 
+  /**
+   * The error message to show.
+   */
   @property({ type: String }) errorMessage = '';
 
   /**
@@ -81,6 +116,9 @@ export class VcfMonthPicker extends ElementMixin(
    */
   @property({ type: String }) tooltipText = '';
 
+  /**
+   * The object used to localize months names and months labels.
+   */
   @property({ type: Object })
   i18n = {
     monthNames: [

@@ -20,7 +20,7 @@ interface I18n {
 }
 
 /**
- * @element vcf-month-picker-calendar
+ * @element vcf-month-picker-calendar displays a calendar for selecting a month.
  */
 @customElement('vcf-month-picker-calendar')
 class MonthPickerCalendar extends ElementMixin(
@@ -34,17 +34,32 @@ class MonthPickerCalendar extends ElementMixin(
     return '1.0.0';
   }
 
+  /**
+   * The selected month in YYYY-MM format.
+   */
   @property({ type: String }) value: string | null = null;
 
+  /**
+   * Localization properties for month names and labels.
+   */
   @property({ type: Object }) i18n: I18n = {
     monthNames: [],
     monthLabels: [],
   };
 
+  /**
+   * The currently opened year in the calendar.
+   */
   @property({ type: Number }) openedYear = new Date().getFullYear();
 
+  /**
+   * The minimum selectable year
+   */
   @property({ type: String }) minYear: string | null = null;
 
+  /**
+   * The maximum selectable year.
+   */
   @property({ type: String }) maxYear: string | null = null;
 
   static get styles() {
@@ -174,6 +189,9 @@ class MonthPickerCalendar extends ElementMixin(
     return this.value === null ? '0' : selected ? '0' : '-1';
   }
 
+  /**
+   * Handles keyboard navigation for month selection.
+   */
   private __onMonthsKeyDown(event: KeyboardEvent) {
     const monthButtons = Array.from(
       this.shadowRoot!.querySelectorAll('.month-button:not([disabled])')
