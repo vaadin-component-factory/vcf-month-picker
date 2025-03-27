@@ -35,7 +35,7 @@ import '@vaadin-component-factory/vcf-month-picker';
 
 ### Example
 ```html
-<vcf-month-picker label="Month Picker" placeholder="Select a month" clear-button></vcf-month-picker>
+<vcf-month-picker label="Month Picker" placeholder="Select a month" clear-button-visible></vcf-month-picker>
 ```
 
 ## Linting and formatting
