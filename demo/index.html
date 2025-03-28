@@ -20,6 +20,10 @@
       margin: auto;
       padding: 15px;
     }
+    .value-display {
+      display: block;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -29,12 +33,22 @@
     import { html, render } from 'lit';
     import '../dist/src/vcf-month-picker.js';
 
+    function handleValueChange(event) {
+      const picker = event.target;
+      const parentDiv = picker.closest('div'); 
+      let span = parentDiv.querySelector('.value-display');
+      if (span) {
+        span.textContent = `Selected Value: ${picker.value || 'None'}`;
+      }
+    }
+
     render(
       html`
         <div id="basic" class="centered">
         <h2>Month Picker - Basic Use</h2>
-        <vcf-month-picker label="Month Picker" placeholder="Select a month" clear-button-visible>
-        </vcf-month-picker>
+        <vcf-month-picker label="Month Picker" placeholder="Select a month" clear-button-visible @value-changed=${handleValueChange}>
+        </vcf-month-picker>   
+        <span class="value-display">Selected Value: None</span>     
         </div>
         
         <hr />
