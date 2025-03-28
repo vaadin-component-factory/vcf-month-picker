@@ -101,7 +101,7 @@ export class VcfMonthPicker extends ElementMixin(
   /**
    * Whether the component is readonly.
    */
-  @property({ type: Boolean }) readonly = false;
+  @property({ type: Boolean, reflect: true }) readonly = false;
 
   /**
    * Whether a value is required.
