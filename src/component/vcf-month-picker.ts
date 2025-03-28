@@ -223,7 +223,7 @@ export class VcfMonthPicker extends ElementMixin(
     }
 
     if (this.__dispatchChange && props.has('value')) {
-      this.dispatchEvent(new CustomEvent('change', { bubbles: true }));
+      this.dispatchEvent(new CustomEvent('value-changed', { bubbles: true }));
       this.__dispatchChange = false;
     }
   }
