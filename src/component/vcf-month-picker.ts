@@ -18,6 +18,7 @@
  */
 import { ElementMixin } from '@vaadin/component-base/src/element-mixin.js';
 import { PolylitMixin } from '@vaadin/component-base/src/polylit-mixin.js';
+import { TooltipController } from '@vaadin/component-base/src/tooltip-controller.js';
 import { Overlay, OverlayCloseEvent } from '@vaadin/overlay/vaadin-overlay';
 import '@vaadin/text-field';
 import { TextField } from '@vaadin/text-field/vaadin-text-field';
@@ -125,12 +126,6 @@ export class VcfMonthPicker extends ElementMixin(
   @property({ type: String }) errorMessage = '';
 
   /**
-   * To set the tooltip text when needed.
-   * @attr {string} tooltip-text
-   */
-  @property({ type: String }) tooltipText = '';
-
-  /**
    * The object used to localize months names and months labels.
    */
   @property({ type: Object })
@@ -196,6 +191,8 @@ export class VcfMonthPicker extends ElementMixin(
 
   private __keepInputValue = false;
 
+  private _tooltipController: TooltipController | undefined;
+
   static get styles() {
     return css`
       :host {
@@ -241,6 +238,9 @@ export class VcfMonthPicker extends ElementMixin(
   }
 
   protected firstUpdated() {
+    this._tooltipController = new TooltipController(this, 'tooltip');
+    this._tooltipController.setPosition('top');
+    this.addController(this._tooltipController);
     if (this.value) {
       this.__boundInputValueChanged();
     }
@@ -271,11 +271,10 @@ export class VcfMonthPicker extends ElementMixin(
           aria-hidden="true"
           @click="${this.__toggle}"
         ></div>
-        <vaadin-tooltip
-          slot="tooltip"
-          text=${this.tooltipText}
-        ></vaadin-tooltip>
       </vaadin-text-field>
+
+      <slot name="tooltip"></slot>
+
       <vcf-month-picker-overlay
         id="overlay"
         .positionTarget=${this.textField?.shadowRoot?.querySelector(

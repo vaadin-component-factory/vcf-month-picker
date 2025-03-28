@@ -46,7 +46,8 @@
       html`
         <div id="basic" class="centered">
         <h2>Month Picker - Basic Use</h2>
-        <vcf-month-picker label="Month Picker" placeholder="Select a month" clear-button-visible @value-changed=${handleValueChange}>
+        <vcf-month-picker label="Month Picker" placeholder="Select a month" clear-button-visible @value-changed=${handleValueChange} >
+          <vaadin-tooltip slot="tooltip" text="I'm the tooltip"></vaadin-tooltip>
         </vcf-month-picker>   
         <span class="value-display">Selected Value: None</span>     
         </div>
