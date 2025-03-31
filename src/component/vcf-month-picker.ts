@@ -433,6 +433,7 @@ export class VcfMonthPicker extends ElementMixin(
       this.opened ? 'true' : 'false'
     );
     this.__updateOpenedYear();
+    this.dispatchEvent(new CustomEvent('opened-changed', { bubbles: true }));
   }
 
   private __renderOverlay(root: HTMLElement) {
