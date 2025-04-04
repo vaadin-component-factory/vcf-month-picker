@@ -32,7 +32,7 @@
   <script type="module">
     import { html, render } from 'lit';
     import '../dist/src/vcf-month-picker.js';
-
+    
     function handleValueChange(event) {
       const picker = event.target;
       const parentDiv = picker.closest('div'); 
@@ -42,14 +42,25 @@
       }
     }
 
+    function updateFormatsPicker() {
+      const picker = document.querySelector('#formats-picker'); 
+      if (picker && picker.i18n) {
+        picker.i18n = {
+          monthNames: picker.i18n.monthNames,
+          monthLabels: picker.i18n.monthLabels,
+          formats: ['MM.YYYY', 'MM/YYYY', 'MMYYYY', 'MM-YYYY', 'YYYY.MM', 'MYYYY', 'YYYY/MM', 'MM YYYY']
+        };
+      }
+    }
+
     render(
       html`
         <div id="basic" class="centered">
         <h2>Month Picker - Basic Use</h2>
-        <vcf-month-picker label="Month Picker" placeholder="Select a month" clear-button-visible @value-changed=${handleValueChange} >
+        <vcf-month-picker label="Month Picker" placeholder="Select a month" clear-button-visible @value-changed=${handleValueChange}>
           <vaadin-tooltip slot="tooltip" text="I'm the tooltip"></vaadin-tooltip>
         </vcf-month-picker>   
-        <span class="value-display">Selected Value: None</span>     
+        <span class="value-display">Selected Value: None</span>   
         </div>
         
         <hr />
@@ -69,13 +80,24 @@
         <hr />
         <div id="i18n-spanish" class="centered">
         <h2>Month Picker - With months in Spanish </h2>
-        <vcf-month-picker label="Month Picker"   
+        <vcf-month-picker label="Month Picker" @value-changed=${handleValueChange}  
         .i18n=${{
           monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-               'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+              'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
           monthLabels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-        }} >
+          formats: ["MM/YYYY"]  
+        }} helper-text="Spanish months labels/names and format 'MM/YYYY'" >
         </vcf-month-picker>
+        <span class="value-display">Selected Value: None</span>   
+        </div>
+
+        <hr />
+        <div id="i18n-formats" class="centered">
+        <h2>Month Picker - With custom formats </h2>
+        <vcf-month-picker id="formats-picker" label="Month Picker" @value-changed=${handleValueChange} 
+          helper-text="Default months labels/names and formats: ['MM.YYYY', 'MM/YYYY', 'MMYYYY', 'MM-YYYY', 'YYYY.MM', 'MYYYY', 'YYYY/MM', 'MM YYYY']" >
+        </vcf-month-picker>
+        <span class="value-display">Selected Value: None</span>   
         </div>
 
         <hr />
@@ -95,6 +117,10 @@
       `,
       document.querySelector('#demo')
     );
+
+    // Ensure the i18n settings for "formats-picker" are updated after rendering
+    setTimeout(updateFormatsPicker, 0);
+
   </script>
 </body>
 </html>

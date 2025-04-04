@@ -12,12 +12,61 @@ This component is part of [Vaadin Component Factory](https://github.com/vaadin-c
 * Month & Year Selection: Allows users to pick a month and year in YYYY-MM format.
 * Configurable Range: Set minimum and maximum selectable years.
 * Customizable Labels & Placeholders: Supports custom text for better user experience.
-* Disabled & Read-only Modes: Can be set as non-interactive when needed.
+* Disabled & Read-only Modes: Component can be set as non-interactive when needed.
 * Clear Button Support: Option to reset the selection.
 * Theming & Styling: Uses CSS custom properties for easy styling.
-* Localization: Supports custom month names and labels.
+* Localization: Supports custom month names, months labels and formats.
 * Validation & Error Handling: Marks invalid states with an error message.
 * ARIA & Accessibility: Proper attributes for screen reader support.
+
+### Custom Month Names and Labels
+By default, month names and labels are in English language but it can be customized through the `i18n` property.
+Please note that the object expects month names, labels and formats to be specified on customization.
+
+Example:
+``` 
+<vcf-month-picker 
+  label="Month Picker"  
+  .i18n=${{
+	monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+		'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+	monthLabels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+	formats: ["MM/YYYY"]  
+  }} >
+</vcf-month-picker>
+```
+
+### Custom Year-Month Formats
+The component allows users to define custom formats for displaying and parsing year-month values.
+
+#### Defining Custom Formats
+You can specify an array of formats through the `i18n` property. The first format in the array is used for display, while all listed formats are used for parsing user input.
+
+Example:
+
+```js
+monthPicker.i18n = {
+  monthNames: monthPicker.i18n.monthNames,
+  monthLabels: monthPicker.i18n.monthLabels,
+  formats: ['MM.YYYY', 'MM/YYYY', 'MMYYYY', 'MM-YYYY', 'YYYY.MM', 'MYYYY', 'YYYY/MM', 'MM YYYY']
+};
+```
+The displayed value will use "MM.YYYY".
+
+Users can enter values using "MM.YYYY", "MM/YYYY", "MM-YYYY" or "MMYYYY".
+
+#### Format Rules
+* The year must always be four digits (YYYY).
+* The month must be one or two digits (M or MM).
+* Only common date separators are supported: 
+    - Dot (.)
+    - Slash (/)
+    - Hyphen (-)
+    - Space ( ) 
+* Not separator is also supported (e.g. "MMYYYY" or "YYYYMM")   
+* Month position matters:
+    - MM/YYYY and YYYY/MM are treated differently.
+    - The component determines whether the month appears before or after the year based on the format.
 
 ## Installation
 

@@ -236,6 +236,10 @@ class MonthPickerCalendar extends ElementMixin(
       case 'Enter':
         clickOnKey(event, ' ', 'Enter');
         return;
+      case 'Tab':
+        this._focusPreviousYearButton(event);
+        return;
+
       default:
         return;
     }
@@ -243,6 +247,25 @@ class MonthPickerCalendar extends ElementMixin(
     if (newIndex !== currentIndex) {
       event.preventDefault();
       monthButtons[newIndex].focus();
+    }
+  }
+
+  /**
+   * Returns the month button element that should be focused (tabindex=0).
+   */
+  get focusedMonth(): HTMLElement | null {
+    return (
+      this.shadowRoot!.querySelector('.month-grid')!.querySelector(
+        '.month-button[tabindex="0"]'
+      ) || null
+    );
+  }
+
+  private _focusPreviousYearButton(event: KeyboardEvent) {
+    const prevYearButton = this.shadowRoot!.querySelector('.prevYear');
+    if (prevYearButton && prevYearButton instanceof HTMLButtonElement) {
+      event.preventDefault();
+      prevYearButton.focus();
     }
   }
 }
