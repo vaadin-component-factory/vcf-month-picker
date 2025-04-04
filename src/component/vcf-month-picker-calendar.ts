@@ -231,14 +231,16 @@ class MonthPickerCalendar extends ElementMixin(
             : currentIndex;
         break;
       case 'Enter':
-        clickOnKey(event, ' ', 'Enter');
-        return;
+        clickOnKey(event, 'Enter');
+        break;
+      case ' ':
+        clickOnKey(event, ' ');
+        break;
       case 'Tab':
         this._focusPreviousYearButton(event);
-        return;
-
+        break;
       default:
-        return;
+        break;
     }
 
     if (newIndex !== currentIndex) {
