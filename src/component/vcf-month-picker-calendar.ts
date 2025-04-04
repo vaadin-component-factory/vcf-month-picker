@@ -78,9 +78,6 @@ class MonthPickerCalendar extends ElementMixin(
 
   static get styles() {
     return css`
-      :host {
-      }
-
       :host([hidden]) {
         display: none !important;
       }

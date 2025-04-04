@@ -22,7 +22,6 @@ import { TooltipController } from '@vaadin/component-base/src/tooltip-controller
 import { Overlay, OverlayCloseEvent } from '@vaadin/overlay/vaadin-overlay';
 import '@vaadin/text-field';
 import { TextField } from '@vaadin/text-field/vaadin-text-field';
-import '@vaadin/tooltip';
 import { ThemableMixin } from '@vaadin/vaadin-themable-mixin/vaadin-themable-mixin.js';
 import { css, html, LitElement, PropertyValues, render } from 'lit';
 import { property, query } from 'lit/decorators.js';
@@ -623,7 +622,6 @@ export class VcfMonthPicker extends ElementMixin(
   /** @protected */
   disconnectedCallback() {
     super.disconnectedCallback();
-
     this.opened = false;
   }
 }
