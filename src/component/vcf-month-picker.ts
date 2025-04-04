@@ -30,7 +30,6 @@ import './vcf-month-picker-calendar.js';
 import { MonthPickerCalendar } from './vcf-month-picker-calendar.js';
 import './vcf-month-picker-overlay.js';
 import {
-  clickOnKey,
   monthAllowed,
   valueToYearMonth,
   YearMonth,
@@ -126,7 +125,8 @@ export class VcfMonthPicker extends ElementMixin(
   @property({ type: String }) errorMessage = '';
 
   /**
-   * The object used to localize months names and months labels.
+   * The object used to localize compoment.
+   * Months names, months labels and month-year formats can be definded here.
    */
   @property({ type: Object })
   i18n = {
@@ -158,6 +158,9 @@ export class VcfMonthPicker extends ElementMixin(
       'Nov',
       'Dec',
     ],
+    // First is primary format. The rest are allowed valid formats for entering Year-Month values.
+    // Defaul format 'MM.YYYY'
+    formats: ['MM.YYYY'],
   };
 
   /**
@@ -192,6 +195,8 @@ export class VcfMonthPicker extends ElementMixin(
   private __keepInputValue = false;
 
   private _tooltipController: TooltipController | undefined;
+
+  private _closedByEscape = false;
 
   static get styles() {
     return css`
@@ -235,6 +240,7 @@ export class VcfMonthPicker extends ElementMixin(
       'aria-expanded',
       this.opened ? 'true' : 'false'
     );
+    (this.textField! as any)._onKeyDown = this._onKeyDown.bind(this);
   }
 
   protected firstUpdated() {
@@ -252,7 +258,6 @@ export class VcfMonthPicker extends ElementMixin(
         id="textField"
         value=${this.inputValue}
         @click=${this.__boundInputClicked}
-        @keydown=${(e: KeyboardEvent) => clickOnKey(e, ' ', 'ArrowDown')}
         @change=${this.__boundInputValueChanged}
         label=${this.label}
         placeholder=${this.placeholder}
@@ -283,11 +288,12 @@ export class VcfMonthPicker extends ElementMixin(
         no-vertical-overlap
         restore-focus-on-close
         .restoreFocusNode=${this.textField?.inputElement}
-        focus-trap
         .opened=${this.opened}
         @opened-changed=${this.__boundOverlayOpenedChanged}
         .renderer=${this.__boundRenderOverlay}
+        @vaadin-overlay-escape-press="${this._onOverlayEscapePress}"
         @vaadin-overlay-close="${this._onVaadinOverlayClose}"
+        @vaadin-overlay-closing="${this._onOverlayClosed}"
       >
       </vcf-month-picker-overlay>
     `;
@@ -312,35 +318,94 @@ export class VcfMonthPicker extends ElementMixin(
     }
   }
 
-  /**
-   * Override formatValue and parseValue to define how the current value is
-   * presented in the field.
-   */
-  static formatValue({ year, month }: YearMonth) {
-    return `${month}/${year}`;
+  _onOverlayEscapePress() {
+    this._closedByEscape = true;
+    this.opened = false;
+  }
+
+  _onOverlayClosed() {
+    if (this._closedByEscape) {
+      this.textField!.value = this.inputValue;
+      this._closedByEscape = false;
+    } else {
+      this.opened = false;
+    }
   }
 
   /**
-   * Override formatValue and parseValue to define how the current value is
-   * presented in the field.
+   * Formats a given YearMonth object into a string based on the defined format.
+   * Uses the first format in the `i18n.formats` array as the display format.
+   * Falls back to "MM/YYYY" if no formats are defined.
    */
-  static parseValue(inputValue: string): YearMonth | null {
-    if (!inputValue.match(/^[0-9]+[/][0-9]+$/)) {
-      return null;
-    }
-    const parts = inputValue.split('/');
-    const month = parseInt(parts[0], 10);
-    const year = parseInt(parts[1], 10);
+  static formatValue({ year, month }: YearMonth, i18n: any) {
+    if (!i18n.formats?.length) return `${month}/${year}`; // Default format if no custom formats are provided
 
-    if (month < 1 || month > 12) {
-      return null;
+    const format = i18n.formats[0]; // Use the first format to display
+
+    return format
+      .replace(/MM/, String(month).padStart(2, '0'))
+      .replace(/YYYY/, String(year));
+  }
+
+  /**
+   * Parses a given string into a YearMonth object based on the available formats.
+   * Accepts multiple formats from `i18n.formats` and normalizes different separators.
+   */
+  static parseValue(inputValue: string, i18n: any): YearMonth | null {
+    if (!i18n?.formats?.length) return null;
+
+    const { formats } = i18n;
+
+    // Iterate over each format
+    for (const format of formats) {
+      // Handle no separator (i.e., continuous format like MMYYYY)
+      const separator = format.includes('.')
+        ? '.'
+        : format.includes('/')
+        ? '/'
+        : format.includes(' ')
+        ? ' '
+        : ''; // Handle common separators and space
+
+      // Adjust the regex based on the presence of the separator
+      let regex = format
+        .replace(/MM/, '(\\d{1,2})') // Match month (1 or 2 digits)
+        .replace(/YYYY/, '(\\d{4})'); // Match year (4 digits)");
+
+      if (separator) {
+        // Escape the separator for regex if present
+        regex = regex.replace(
+          new RegExp(`\\${separator}`, 'g'),
+          `\\${separator}`
+        );
+      }
+
+      // Check if the input matches the format with the correct separator (if any)
+      const match = inputValue.match(new RegExp(`^${regex}$`));
+
+      if (match) {
+        // Get month and year indexes based on format
+        const monthIndex =
+          format.indexOf('MM') < format.indexOf('YYYY') ? 1 : 2;
+        const yearIndex = monthIndex === 1 ? 2 : 1;
+
+        const month = parseInt(match[monthIndex], 10);
+        const year = parseInt(match[yearIndex], 10);
+
+        // Validate that the parsed month is within the valid range (1-12)
+        if (month >= 1 && month <= 12) {
+          return { month, year };
+        }
+      }
     }
 
-    return { month, year };
+    return null;
   }
 
   get formattedValue() {
-    return this.yearMonth ? VcfMonthPicker.formatValue(this.yearMonth) : '';
+    return this.yearMonth
+      ? VcfMonthPicker.formatValue(this.yearMonth, this.i18n)
+      : '';
   }
 
   get yearMonth(): YearMonth | null {
@@ -353,11 +418,62 @@ export class VcfMonthPicker extends ElementMixin(
       : this.formattedValue;
   }
 
+  private _onKeyDown(event: KeyboardEvent) {
+    switch (event.key) {
+      case 'Enter':
+        this._onEnter();
+        break;
+      case 'Escape':
+        this._onEscape();
+        break;
+      case 'ArrowDown':
+      case ' ':
+        this._onArrowDown(event);
+        break;
+      case 'Tab':
+        this._onTab(event);
+        break;
+      default:
+        break;
+    }
+  }
+
+  /* eslint no-empty: 0 */
+  private _onEscape() {
+    if (this.opened) {
+    }
+  }
+
+  private _onEnter() {
+    if (this.opened) {
+      this.opened = false;
+    } else {
+      this.__boundInputValueChanged();
+    }
+  }
+
+  private _onArrowDown(event: KeyboardEvent) {
+    if (event.target instanceof HTMLElement) {
+      if (!this.opened) {
+        event.target.click();
+      }
+    }
+  }
+
+  private _onTab(event: KeyboardEvent) {
+    if (this.opened) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.calendar?.focusedMonth!.focus();
+    }
+  }
+
   private __inputClicked(event: Event) {
     if (!this.__isClearButton(event)) {
       if (!this.autoOpenDisabled) {
         if (!this.disabled && !this.readonly) {
-          this.opened = !this.opened;
+          event.preventDefault();
+          this.opened = true;
         }
       }
     }
@@ -378,10 +494,17 @@ export class VcfMonthPicker extends ElementMixin(
   private __inputValueChanged() {
     if (this.textField) {
       const inputValue = this.textField.value;
-      const yearMonth = VcfMonthPicker.parseValue(inputValue);
+      let enteredInputValue = inputValue;
+      const parsedYearMonth = VcfMonthPicker.parseValue(inputValue, this.i18n);
+      if (parsedYearMonth) {
+        enteredInputValue = VcfMonthPicker.formatValue(
+          parsedYearMonth!,
+          this.i18n
+        );
+      }
       const selectedValue =
-        yearMonth !== null ? yearMonthToValue(yearMonth!) : '';
-      this.__commitChanges(inputValue, yearMonth!, selectedValue);
+        parsedYearMonth !== null ? yearMonthToValue(parsedYearMonth!) : '';
+      this.__commitChanges(enteredInputValue, parsedYearMonth!, selectedValue);
     }
     this.__updateOpenedYear();
   }
@@ -419,7 +542,7 @@ export class VcfMonthPicker extends ElementMixin(
     const inputValid =
       !inputValue ||
       (!!selectedValue &&
-        inputValue === VcfMonthPicker.formatValue(yearMonth!));
+        inputValue === VcfMonthPicker.formatValue(yearMonth!, this.i18n));
     const isMonthValid =
       !selectedValue || monthAllowed(selectedValue, this.minYear, this.maxYear);
     return inputValid && isMonthValid;
@@ -432,6 +555,9 @@ export class VcfMonthPicker extends ElementMixin(
       'aria-expanded',
       this.opened ? 'true' : 'false'
     );
+    if (opened) {
+      this.textField?.focus();
+    }
     this.__updateOpenedYear();
     this.dispatchEvent(new CustomEvent('opened-changed', { bubbles: true }));
   }
@@ -458,7 +584,7 @@ export class VcfMonthPicker extends ElementMixin(
   private _commitMonthClickedChanges(selectedValue: string) {
     if (this.value !== selectedValue) {
       const yearMonth = valueToYearMonth(selectedValue);
-      const inputValue = VcfMonthPicker.formatValue(yearMonth!);
+      const inputValue = VcfMonthPicker.formatValue(yearMonth!, this.i18n);
       this.__commitChanges(inputValue, yearMonth!, selectedValue);
     }
   }
