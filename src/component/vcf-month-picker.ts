@@ -258,6 +258,8 @@ export class VcfMonthPicker extends ElementMixin(
         value=${this.inputValue}
         @click=${this.__boundInputClicked}
         @change=${this.__boundInputValueChanged}
+        @blur=${this._onBlur}
+        @focus=${this._onFocus}
         label=${this.label}
         placeholder=${this.placeholder}
         ?disabled=${this.disabled}
@@ -329,6 +331,14 @@ export class VcfMonthPicker extends ElementMixin(
     } else {
       this.opened = false;
     }
+  }
+
+  _onBlur() {
+    this.dispatchEvent(new FocusEvent('blur'));
+  }
+
+  _onFocus() {
+    this.dispatchEvent(new FocusEvent('focus'));
   }
 
   /**
