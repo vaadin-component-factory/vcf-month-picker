@@ -9,9 +9,10 @@ This web component follows the [open-wc](https://github.com/open-wc/open-wc) rec
 This component is part of [Vaadin Component Factory](https://github.com/vaadin-component-factory).
 
 ## Features
-* Month & Year Selection: Allows users to pick a month and year in YYYY-MM format.
+* Month & Year Selection: Allows users to pick a month and year via textfield or overlay.
 * Configurable Range: Set minimum and maximum selectable years.
 * Customizable Labels & Placeholders: Supports custom text for better user experience.
+* Customizable formats: Different combinations of month and year placeholder possible, e.g. "MM.YYYY", "MMYY", "YY-MM", ...
 * Disabled & Read-only Modes: Component can be set as non-interactive when needed.
 * Clear Button Support: Option to reset the selection.
 * Theming & Styling: Uses CSS custom properties for easy styling.
@@ -55,8 +56,11 @@ The displayed value will use "MM.YYYY".
 
 Users can enter values using "MM.YYYY", "MM/YYYY", "MM-YYYY" or "MMYYYY".
 
+You may also use 1-digit month and/or 2-digit year placeholders. Be aware, that the resulting formats should
+be parsable and that they should not result in ambigious variants (e.g. "YYMM" and "MMYY"). 
+
 #### Format Rules
-* The year must always be four digits (YYYY).
+* The year must always be two or four digits (YY or YYYY).
 * The month must be one or two digits (M or MM).
 * Only common date separators are supported: 
     - Dot (.)
@@ -67,6 +71,18 @@ Users can enter values using "MM.YYYY", "MM/YYYY", "MM-YYYY" or "MMYYYY".
 * Month position matters:
     - MM/YYYY and YYYY/MM are treated differently.
     - The component determines whether the month appears before or after the year based on the format.
+
+#### 2-digit year handling / reference century
+When using 2-digit years, we could run into the problem, that 2-digit years can be interpreted in multiple ways.
+To not resulting in years, that points to the time of the Caesars, the component will automatically convert
+2-digit years to 4-digit ones internally. 
+
+To accomplish this, the picker stores the last picked century internally (reference century) and applies them
+on any 2-digit year entered by the user via the text field. By default, the refence century refers to the current one. 
+When a 4-digit year is entered, the reference century is updated respectivly.
+
+Please note, that this is not the common term of century, where the current century is the 21st, but means basically 
+the first 2 digits of a 4-digit year, i.e. entering "2025" results in the reference century "20".
 
 ## Installation
 

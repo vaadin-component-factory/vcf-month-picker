@@ -23,7 +23,7 @@ export interface YearMonth {
 }
 
 export function yearMonthToValue({ year, month }: YearMonth): string {
-  return `${year}-${`0${month}`.substr(-2)}`;
+  return `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}`;
 }
 
 export function valueToYearMonth(value: string): YearMonth | null {
@@ -35,6 +35,24 @@ export function valueToYearMonth(value: string): YearMonth | null {
     };
   }
   return null;
+}
+
+/**
+ * Extracts the century from the given year. Expects the year to be a 4-digit year. The century will be
+ * for instance "20", when "2025" is passed.
+ * @param year 4-digit year
+ */
+export function toRefCentury(year: number) {
+  return Math.trunc(year / 100);
+}
+
+/**
+ * Applies the reference century onto the given year. Expects the year to be a 2-digit year.
+ * @param year 2-digit year
+ * @param century century (e.g. "20")
+ */
+export function applyRefCentury(year: number, century: number) {
+  return year + century * 100;
 }
 
 export function isInvalid(

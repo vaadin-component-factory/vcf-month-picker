@@ -24,16 +24,20 @@ import '@vaadin/text-field';
 import { TextField } from '@vaadin/text-field/vaadin-text-field';
 import { ThemableMixin } from '@vaadin/vaadin-themable-mixin/vaadin-themable-mixin.js';
 import { css, html, LitElement, PropertyValues, render } from 'lit';
-import { property, query } from 'lit/decorators.js';
+import {property, query, state} from 'lit/decorators.js';
 import './vcf-month-picker-calendar.js';
 import { MonthPickerCalendar } from './vcf-month-picker-calendar.js';
 import './vcf-month-picker-overlay.js';
 import {
-  monthAllowed,
+  applyRefCentury,
+  monthAllowed, toRefCentury,
   valueToYearMonth,
   YearMonth,
   yearMonthToValue,
 } from './vcf-month-picker-util.js';
+
+// we assume here, that the browser will not be open till the next century ;)
+const REF_CENTURY_DEFAULT = toRefCentury(new Date().getFullYear());
 
 /**
  * `<vcf-month-picker>` is a web component for selecting year and month.
@@ -173,6 +177,13 @@ export class VcfMonthPicker extends ElementMixin(
    * @attr {string} helper-text
    */
   @property({ type: String }) helperText = '';
+
+  /**
+   * For short year formats, this will be the reference century, that shall be applied on top.
+   * It will be updated, when the user picks a different century.
+   * @private
+   */
+  private _referenceCentury = REF_CENTURY_DEFAULT;
 
   @query('#textField') private textField?: TextField;
 
@@ -353,7 +364,9 @@ export class VcfMonthPicker extends ElementMixin(
 
     return format
       .replace(/MM/, String(month).padStart(2, '0'))
-      .replace(/YYYY/, String(year));
+      .replace(/M/, String(month))
+      .replace(/YYYY/, String(year))
+      .replace(/YY/, String(year - parseInt("" + (year / 100)) * 100).padStart(2, '0'));
   }
 
   /**
@@ -372,14 +385,19 @@ export class VcfMonthPicker extends ElementMixin(
         ? '.'
         : format.includes('/')
         ? '/'
+        : format.includes('-')
+        ? '-'
         : format.includes(' ')
         ? ' '
         : ''; // Handle common separators and space
 
       // Adjust the regex based on the presence of the separator
       let regex = format
-        .replace(/MM/, '(\\d{1,2})') // Match month (1 or 2 digits)
-        .replace(/YYYY/, '(\\d{4})'); // Match year (4 digits)");
+          .replace(/MM/, '(\\d{1,2})')
+          .replace(/M/, '(\\d{1})') // Match month (1 or 2 digits)
+          .replace(/YYYY/, '(\\d{4})')
+          .replace(/YY/, '(\\d{2})')
+      ; // Match year (4 digits)");
 
       if (separator) {
         // Escape the separator for regex if present
@@ -395,7 +413,7 @@ export class VcfMonthPicker extends ElementMixin(
       if (match) {
         // Get month and year indexes based on format
         const monthIndex =
-          format.indexOf('MM') < format.indexOf('YYYY') ? 1 : 2;
+          format.indexOf('M') < format.indexOf('YY') ? 1 : 2;
         const yearIndex = monthIndex === 1 ? 2 : 1;
 
         const month = parseInt(match[monthIndex], 10);
@@ -505,6 +523,18 @@ export class VcfMonthPicker extends ElementMixin(
       const inputValue = this.textField.value;
       let enteredInputValue = inputValue;
       const parsedYearMonth = VcfMonthPicker.parseValue(inputValue, this.i18n);
+
+      if(parsedYearMonth?.year) {
+        if (parsedYearMonth.year < 100) {
+          parsedYearMonth.year = applyRefCentury(parsedYearMonth.year, this._referenceCentury);
+        } else {
+          this._referenceCentury = toRefCentury(parsedYearMonth.year);
+        }
+      } else {
+        // reset the reference century, when the text field is cleared
+        this._referenceCentury = REF_CENTURY_DEFAULT;
+      }
+
       if (parsedYearMonth) {
         enteredInputValue = VcfMonthPicker.formatValue(
           parsedYearMonth!,
@@ -593,6 +623,9 @@ export class VcfMonthPicker extends ElementMixin(
   private _commitMonthClickedChanges(selectedValue: string) {
     if (this.value !== selectedValue) {
       const yearMonth = valueToYearMonth(selectedValue);
+      if (yearMonth?.year) {
+        this._referenceCentury = toRefCentury(yearMonth.year);
+      }
       const inputValue = VcfMonthPicker.formatValue(yearMonth!, this.i18n);
       this.__commitChanges(inputValue, yearMonth!, selectedValue);
     }
