@@ -16,21 +16,22 @@
  * limitations under the License.
  * #L%
  */
-import { ElementMixin } from '@vaadin/component-base/src/element-mixin.js';
-import { PolylitMixin } from '@vaadin/component-base/src/polylit-mixin.js';
-import { TooltipController } from '@vaadin/component-base/src/tooltip-controller.js';
-import { Overlay, OverlayCloseEvent } from '@vaadin/overlay/vaadin-overlay';
+import {ElementMixin} from '@vaadin/component-base/src/element-mixin.js';
+import {PolylitMixin} from '@vaadin/component-base/src/polylit-mixin.js';
+import {TooltipController} from '@vaadin/component-base/src/tooltip-controller.js';
+import {Overlay, OverlayCloseEvent} from '@vaadin/overlay/vaadin-overlay';
 import '@vaadin/text-field';
-import { TextField } from '@vaadin/text-field/vaadin-text-field';
-import { ThemableMixin } from '@vaadin/vaadin-themable-mixin/vaadin-themable-mixin.js';
-import { css, html, LitElement, PropertyValues, render } from 'lit';
-import {property, query, state} from 'lit/decorators.js';
+import {TextField} from '@vaadin/text-field/vaadin-text-field';
+import {ThemableMixin} from '@vaadin/vaadin-themable-mixin/vaadin-themable-mixin.js';
+import {css, html, LitElement, PropertyValues, render} from 'lit';
+import {property, query} from 'lit/decorators.js';
 import './vcf-month-picker-calendar.js';
-import { MonthPickerCalendar } from './vcf-month-picker-calendar.js';
+import {MonthPickerCalendar} from './vcf-month-picker-calendar.js';
 import './vcf-month-picker-overlay.js';
 import {
   applyRefCentury,
-  monthAllowed, toRefCentury,
+  monthAllowed,
+  toRefCentury,
   valueToYearMonth,
   YearMonth,
   yearMonthToValue,
@@ -148,6 +149,21 @@ export class VcfMonthPicker extends ElementMixin(
       'December',
     ],
     monthLabels: [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ],
+    // used for MMM interpretion
+    shortMonthNames: [
       'Jan',
       'Feb',
       'Mar',
@@ -337,7 +353,7 @@ export class VcfMonthPicker extends ElementMixin(
 
   _onOverlayClosed() {
     if (this._closedByEscape) {
-      this.textField!.value = this.inputValue;
+      this.textField!.value = this.inputValue!;
       this._closedByEscape = false;
     } else {
       this.opened = false;
@@ -362,9 +378,21 @@ export class VcfMonthPicker extends ElementMixin(
 
     const format = i18n.formats[0]; // Use the first format to display
 
-    return format
-      .replace(/MM/, String(month).padStart(2, '0'))
-      .replace(/M/, String(month))
+    let result: string;
+
+    if(format.includes("MMMM")){
+      result = format.replace(/MMMM/, i18n.monthNames[month - 1].padStart(2, '0'));
+
+    } else if(!format.includes("MMMM") && format.includes("MMM")){
+      result = format.replace(/MMM/, i18n.shortMonthNames[month - 1].padStart(2, '0'));
+
+    } else {
+      result = format
+          .replace(/MM/, String(month).padStart(2, '0'))
+          .replace(/M/, String(month)); // Match month (1 or 2 digits)
+    }
+
+    return result
       .replace(/YYYY/, String(year))
       .replace(/YY/, String(year - parseInt("" + (year / 100)) * 100).padStart(2, '0'));
   }
@@ -391,13 +419,30 @@ export class VcfMonthPicker extends ElementMixin(
         ? ' '
         : ''; // Handle common separators and space
 
+      let formatUsesLongMonthName = format.includes("MMMM");
+      let formatUsesShortMonthName = !formatUsesLongMonthName && format.includes("MMM");
+
       // Adjust the regex based on the presence of the separator
-      let regex = format
-          .replace(/MM/, '(\\d{1,2})')
-          .replace(/M/, '(\\d{1})') // Match month (1 or 2 digits)
+      let regex: string;
+
+      // we have to explicitly separate the patterns, otherwise replacing /M/ could lead to issues
+      // in month names, like "March".
+      if(formatUsesLongMonthName){
+        regex = format.replace(/MMMM/, `(${i18n.monthNames.join('|')})`);
+
+      } else if(formatUsesShortMonthName){
+        regex = format.replace(/MMM/, `(${i18n.shortMonthNames.join('|')})`);
+
+      } else {
+        regex = format
+            .replace(/MM/, '(\\d{1,2})')
+            .replace(/M/, '(\\d{1})') // Match month (1 or 2 digits)
+      }
+
+      // applying year pattern
+      regex = regex
           .replace(/YYYY/, '(\\d{4})')
-          .replace(/YY/, '(\\d{2})')
-      ; // Match year (4 digits)");
+          .replace(/YY/, '(\\d{2})');
 
       if (separator) {
         // Escape the separator for regex if present
@@ -408,7 +453,7 @@ export class VcfMonthPicker extends ElementMixin(
       }
 
       // Check if the input matches the format with the correct separator (if any)
-      const match = inputValue.match(new RegExp(`^${regex}$`));
+      const match = inputValue.match(new RegExp(`^${regex}$`, 'i'));
 
       if (match) {
         // Get month and year indexes based on format
@@ -416,9 +461,17 @@ export class VcfMonthPicker extends ElementMixin(
           format.indexOf('M') < format.indexOf('YY') ? 1 : 2;
         const yearIndex = monthIndex === 1 ? 2 : 1;
 
-        const month = parseInt(match[monthIndex], 10);
-        const year = parseInt(match[yearIndex], 10);
+        let month: number;
 
+        if(formatUsesLongMonthName) {
+          month = i18n.monthLabels.map((s: string) => s.toLowerCase()).indexOf(match[monthIndex]) + 1;
+        } else if(formatUsesShortMonthName) {
+          month = i18n.shortMonthNames.map((s: string) => s.toLowerCase()).indexOf(match[monthIndex]) + 1;
+        } else {
+          month = parseInt(match[monthIndex], 10);
+        }
+
+        const year = parseInt(match[yearIndex], 10);
         // Validate that the parsed month is within the valid range (1-12)
         if (month >= 1 && month <= 12) {
           return { month, year };
