@@ -388,8 +388,8 @@ export class VcfMonthPicker extends ElementMixin(
 
     } else {
       result = format
-          .replace(/MM/, String(month).padStart(2, '0'))
-          .replace(/M/, String(month)); // Match month (1 or 2 digits)
+        .replace(/MM/, String(month).padStart(2, '0'))
+        .replace(/M/, String(month)); // Match month (1 or 2 digits)
     }
 
     return result
@@ -412,12 +412,12 @@ export class VcfMonthPicker extends ElementMixin(
       const separator = format.includes('.')
         ? '.'
         : format.includes('/')
-        ? '/'
-        : format.includes('-')
-        ? '-'
-        : format.includes(' ')
-        ? ' '
-        : ''; // Handle common separators and space
+          ? '/'
+          : format.includes('-')
+            ? '-'
+            : format.includes(' ')
+              ? ' '
+              : ''; // Handle common separators and space
 
       let formatUsesLongMonthName = format.includes("MMMM");
       let formatUsesShortMonthName = !formatUsesLongMonthName && format.includes("MMM");
@@ -435,14 +435,14 @@ export class VcfMonthPicker extends ElementMixin(
 
       } else {
         regex = format
-            .replace(/MM/, '(\\d{1,2})')
-            .replace(/M/, '(\\d{1})') // Match month (1 or 2 digits)
+          .replace(/MM/, '(\\d{1,2})')
+          .replace(/M/, '(\\d{1})') // Match month (1 or 2 digits)
       }
 
       // applying year pattern
       regex = regex
-          .replace(/YYYY/, '(\\d{4})')
-          .replace(/YY/, '(\\d{2})');
+        .replace(/YYYY/, '(\\d{4})')
+        .replace(/YY/, '(\\d{2})');
 
       if (separator) {
         // Escape the separator for regex if present
@@ -464,9 +464,9 @@ export class VcfMonthPicker extends ElementMixin(
         let month: number;
 
         if(formatUsesLongMonthName) {
-          month = i18n.monthLabels.map((s: string) => s.toLowerCase()).indexOf(match[monthIndex]) + 1;
+          month = i18n.monthLabels.map((s: string) => s.toLowerCase()).indexOf(match[monthIndex].toLowerCase()) + 1;
         } else if(formatUsesShortMonthName) {
-          month = i18n.shortMonthNames.map((s: string) => s.toLowerCase()).indexOf(match[monthIndex]) + 1;
+          month = i18n.shortMonthNames.map((s: string) => s.toLowerCase()).indexOf(match[monthIndex].toLowerCase()) + 1;
         } else {
           month = parseInt(match[monthIndex], 10);
         }
