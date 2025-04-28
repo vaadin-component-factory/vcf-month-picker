@@ -651,7 +651,12 @@ export class VcfMonthPicker extends ElementMixin(
       this.textField?.focus();
     }
     this.__updateOpenedYear();
-    this.dispatchEvent(new CustomEvent('opened-changed', { bubbles: true }));
+    this.dispatchEvent(new CustomEvent('vcf-month-picker-opened-changed', {
+      bubbles: true,
+      detail: {
+        value: opened,
+      }
+    }));
   }
 
   private __renderOverlay(root: HTMLElement) {
