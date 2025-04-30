@@ -24,6 +24,14 @@
       display: block;
       margin-top: 10px;
     }
+
+    .info-text {
+      display: block;
+      font-size: var(--lumo-font-size-xs);
+      color: var(--lumo-secondary-text-color);
+      white-space: pre-line;
+    }
+
   </style>
 </head>
 <body>
@@ -33,25 +41,32 @@
     import { html, render } from 'lit';
     import '../dist/src/vcf-month-picker.js';
     import '@vaadin/tooltip';
-    
+
     function handleValueChange(event) {
       const picker = event.target;
-      const parentDiv = picker.closest('div'); 
-      let span = parentDiv.querySelector('.value-display');
+      const parentDiv = picker.closest('div');
+      const span = parentDiv.querySelector('.value-display');
       if (span) {
         span.textContent = `Selected Value: ${picker.value || 'None'}`;
       }
     }
 
     function updateFormatsPicker() {
-      const picker = document.querySelector('#formats-picker'); 
-      if (picker && picker.i18n) {
-        picker.i18n = {
-          monthNames: picker.i18n.monthNames,
-          monthLabels: picker.i18n.monthLabels,
-          formats: ['MM.YYYY', 'MM/YYYY', 'MMYYYY', 'MM-YYYY', 'YYYY.MM', 'MYYYY', 'YYYY/MM', 'MM YYYY']
-        };
+      const applyCustomFormats = (queryString, formats) => {
+        const picker = document.querySelector(queryString);
+        if (picker?.i18n) {
+          picker.i18n = {
+            ...picker.i18n, // init with old values
+            formats
+          };
+        }
       }
+
+      applyCustomFormats('#formats-picker', ['MM.YYYY', 'MM/YYYY', 'MMYYYY', 'MM-YYYY', 'YYYY.MM', 'MYYYY', 'YYYY/MM', 'MM YYYY']);
+      applyCustomFormats('#formats-short-year-picker', ['MM.YY', 'MM/YY', 'MMYY', 'MM-YY', 'YY.MM', 'MYY', 'YY/MM', 'MM YY']);
+      applyCustomFormats('#formats-short-month-name-picker', ['MMM YYYY', 'MMM.YYYY', 'MMMYYYY', 'MMM-YYYY', 'MM.YYYY', 'MMYYYY', 'MM-YYYY']);
+      applyCustomFormats('#formats-full-month-name-picker', ['MMMM YYYY', 'MMMM.YYYY', 'MMMMYYYY', 'MMMM-YYYY', 'MM.YYYY', 'MMYYYY', 'MM-YYYY']);
+
     }
 
     render(
@@ -60,10 +75,10 @@
         <h2>Month Picker - Basic Use</h2>
         <vcf-month-picker label="Month Picker" placeholder="Select a month" clear-button-visible @value-changed=${handleValueChange}>
           <vaadin-tooltip slot="tooltip" text="I'm the tooltip"></vaadin-tooltip>
-        </vcf-month-picker>   
-        <span class="value-display">Selected Value: None</span>   
+        </vcf-month-picker>
+        <span class="value-display">Selected Value: None</span>
         </div>
-        
+
         <hr />
         <div id="auto-open-disabled" class="centered">
         <h2>Month Picker - With auto open disabled </h2>
@@ -74,39 +89,70 @@
         <hr />
         <div id="min-max" class="centered">
         <h2>Month Picker - With min and max year </h2>
-        <vcf-month-picker label="Month Picker" min-year="2020" max-year="2026" helper-text="Min year: 2020 & Max year: 2026">
+        <vcf-month-picker label="Month Picker" min-year="2020" max-year="2026" helper-text="Min year: 2020 &amp; Max year: 2026">
         </vcf-month-picker>
         </div>
 
         <hr />
         <div id="i18n-spanish" class="centered">
         <h2>Month Picker - With months in Spanish </h2>
-        <vcf-month-picker label="Month Picker" @value-changed=${handleValueChange}  
+        <vcf-month-picker label="Month Picker" @value-changed=${handleValueChange} aria-describedby="spanish-info-text">
         .i18n=${{
           monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
               'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
           monthLabels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-          formats: ["MM/YYYY"]  
-        }} helper-text="Spanish months labels/names and format 'MM/YYYY'" >
+          formats: ["MM/YYYY"]
+        }}>
         </vcf-month-picker>
-        <span class="value-display">Selected Value: None</span>   
+        <span id="spanish-info-text" class="info-text">Spanish months labels/names and format 'MM/YYYY'</span>
+        <span class="value-display">Selected Value: None</span>
         </div>
 
         <hr />
         <div id="i18n-formats" class="centered">
         <h2>Month Picker - With custom formats </h2>
-        <vcf-month-picker id="formats-picker" label="Month Picker" @value-changed=${handleValueChange} 
-          helper-text="Default months labels/names and formats: ['MM.YYYY', 'MM/YYYY', 'MMYYYY', 'MM-YYYY', 'YYYY.MM', 'MYYYY', 'YYYY/MM', 'MM YYYY']" >
+        <vcf-month-picker id="formats-picker" label="Month Picker" @value-changed=${handleValueChange} aria-describedby="formats-picker-info-text" >
         </vcf-month-picker>
-        <span class="value-display">Selected Value: None</span>   
+        <span id="formats-picker-info-text" class="info-text">Default months labels/names and formats: ['MM.YYYY', 'MM/YYYY', 'MMYYYY', 'MM-YYYY', 'YYYY.MM', 'MYYYY', 'YYYY/MM', 'MM YYYY']</span>
+        <span class="value-display">Selected Value: None</span>
+        </div>
+
+        <hr />
+        <div id="i18n-formats-short-year" class="centered">
+        <h2>Month Picker - Custom formats - 2-digit years </h2>
+        <vcf-month-picker id="formats-short-year-picker" label="Month Picker" @value-changed=${handleValueChange} aria-describedby="formats-short-year-info-text">
+        </vcf-month-picker>
+        <span id="formats-short-year-info-text" class="info-text">Default months labels/names and formats: ['MM.YY', 'MM/YY', 'MMYY', 'MM-YY', 'YY.MM', 'MYY', 'YY/MM', 'MM YY']</span>
+        <span class="value-display">Selected Value: None</span>
+        </div>
+
+        <hr />
+        <div id="i18n-formats-short-month-name" class="centered">
+        <h2>Month Picker - Custom formats - Short month names </h2>
+        <vcf-month-picker id="formats-short-month-name-picker" label="Month Picker" @value-changed=${handleValueChange} aria-describedby="formats-short-month-name-info-text" >
+        </vcf-month-picker>
+        <span id="formats-short-month-name-info-text" class="info-text">Default months labels/names and formats: ['MMM YYYY', 'MMM.YYYY', 'MMMYYYY', 'MMM-YYYY', 'MM.YYYY', 'MMYYYY', 'MM-YYYY'].
+These formats allow entering months via short name or as numeric, e. g. 'Jan' or '01'.</span>
+        <span class="value-display">Selected Value: None</span>
+        </div>
+
+        <hr />
+        <div id="i18n-formats-full-month-name" class="centered">
+        <h2>Month Picker - Custom formats - Full month names </h2>
+        <vcf-month-picker id="formats-full-month-name-picker" label="Month Picker" @value-changed=${handleValueChange} aria-describedby="formats-full-month-name-info-text" >
+        </vcf-month-picker>
+        <span id="formats-full-month-name-info-text" class="info-text">Default months labels/names and formats: ['MMMM YYYY', 'MMMM.YYYY', 'MMMMYYYY', 'MMMM-YYYY', 'MM.YYYY', 'MMYYYY', 'MM-YYYY'].
+These formats allow entering months via full name or as numeric, e. g. 'Jan' or '01'.</span>
+        <span class="value-display">Selected Value: None</span>
         </div>
 
         <hr />
         <div id="invalid" class="centered">
         <h2>Month Picker - With invalid value </h2>
-        <vcf-month-picker label="Month Picker" value="2019-06" min-year="2020" max-year="2026" helper-text="Min year: 2020 & Max year: 2026. If you enter a date outside that range, an error message will be shown."
+        <vcf-month-picker label="Month Picker" value="2019-06" min-year="2020" max-year="2026" aria-describedby="invalid-info-text"
         error-message="Month is outside of year range">
         </vcf-month-picker>
+        <span id="invalid-info-text" class="info-text">Min year: 2020 & Max year: 2026. If you enter a date outside that range, an error message will be shown.</span>
         </div>
 
         <hr />
