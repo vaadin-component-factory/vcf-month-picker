@@ -14,7 +14,7 @@
   "files": [
     "vcf-*.js",
     "src",
-    "dist"
+    "dist/src"
   ],
   "repository": {
     "type": "git",
