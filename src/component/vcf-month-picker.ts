@@ -464,7 +464,7 @@ export class VcfMonthPicker extends ElementMixin(
         let month: number;
 
         if(formatUsesLongMonthName) {
-          month = i18n.monthLabels.map((s: string) => s.toLowerCase()).indexOf(match[monthIndex].toLowerCase()) + 1;
+          month = i18n.monthNames.map((s: string) => s.toLowerCase()).indexOf(match[monthIndex].toLowerCase()) + 1;
         } else if(formatUsesShortMonthName) {
           month = i18n.shortMonthNames.map((s: string) => s.toLowerCase()).indexOf(match[monthIndex].toLowerCase()) + 1;
         } else {
