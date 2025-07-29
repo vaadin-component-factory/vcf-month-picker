@@ -26,29 +26,7 @@ registerStyles(
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
-    [part='toggle-button'] {
-      flex: none;
-      width: 1em;
-      height: 1em;
-      line-height: 1;
-      font-size: var(--vcf-month-picker-icon-size);
-      text-align: center;
-      color: var(--lumo-contrast-60pct);
-      transition: 0.2s color;
-      cursor: var(--lumo-clickable-cursor);
-    }
-    [part='toggle-button']::before {
-      display: block;
-      font-family: var(--vcf-month-picker-icons-font-family);
-      content: var(--vcf-month-picker-toggle-calendar-icon);
-    }
-    [part='toggle-button']:hover {
-      color: var(--lumo-body-text-color);
-    }
-    :host([readonly]) [part='toggle-button'] {
-      color: var(--lumo-contrast-20pct);
-      cursor: default;
-    }
+
     :host([readonly]) {
       pointer-events: none;
     }
