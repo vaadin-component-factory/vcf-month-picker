@@ -19,6 +19,7 @@
 import { ElementMixin } from '@vaadin/component-base/src/element-mixin.js';
 import { PolylitMixin } from '@vaadin/component-base/src/polylit-mixin.js';
 import { TooltipController } from '@vaadin/component-base/src/tooltip-controller.js';
+import { SlotStylesMixin } from '@vaadin/component-base/src/slot-styles-mixin.js';
 import { Overlay, OverlayCloseEvent } from '@vaadin/overlay/vaadin-overlay';
 import '@vaadin/text-field';
 import { TextField } from '@vaadin/text-field/vaadin-text-field';
@@ -54,8 +55,8 @@ const REF_CENTURY_DEFAULT = toRefCentury(new Date().getFullYear());
  *
  * @element vcf-month-picker
  */
-export class VcfMonthPicker extends ElementMixin(
-  ThemableMixin(PolylitMixin(LitElement))
+export class VcfMonthPicker extends SlotStylesMixin(
+  ElementMixin(ThemableMixin(PolylitMixin(LitElement)))
 ) {
   static get is() {
     return 'vcf-month-picker';
@@ -236,26 +237,55 @@ export class VcfMonthPicker extends ElementMixin(
     `;
   }
 
-  update(props: PropertyValues) {
-    const observer = new MutationObserver(() => {
-      this._updateSuffixStyles();
-    });
-    observer.observe(this.shadowRoot!, { childList: true, subtree: true });
+  // @ts-expect-error overriding property from `SlotStylesMixinClass`
+  override get slotStyles(): string[] {
+    const tag = this.localName;
 
+    /**
+     * These rules target a <vaadin-text-field> element with a child element
+     * having the 'toggle-button' part. It is used to style the calendar toggle
+     * button inside the month picker text field.
+     *
+     * The rules are scoped through the component selector and only applies to
+     * the toggle button in the month picker input field.
+     */
+    return [
+      `
+        ${tag} [part="toggle-button"] {
+          flex: none;
+          width: 1em;
+          height: 1em;
+          line-height: 1;
+          font-size: var(--vcf-month-picker-icon-size);
+          text-align: center;
+          color: var(--lumo-contrast-60pct);
+          transition: 0.2s color;
+          cursor: var(--lumo-clickable-cursor);
+          order: 2;
+        }
+
+        ${tag} [part="toggle-button"]::before {
+          display: block;
+          font-family: var(--vcf-month-picker-icons-font-family);
+          content: var(--vcf-month-picker-toggle-calendar-icon);
+        }
+
+        ${tag} [part="toggle-button"]:hover {
+          color: var(--lumo-body-text-color);
+        }
+
+        ${tag}[readonly] [part="toggle-button"] {
+          color: var(--lumo-contrast-20pct);
+          cursor: default;
+        }
+      `,
+    ];
+  }
+
+  update(props: PropertyValues) {
     super.update(props);
 
-    if (this.textField) {
-      this.textField.setAttribute('value', this.inputValue ?? '');
-      this.textField.setAttribute('label', this.label);
-      this.textField.setAttribute('placeholder', this.placeholder);
-      this.textField.disabled = this.disabled;
-      this.textField.readonly = this.readonly;
-      this.textField.invalid = this.invalid;
-      this.textField.required = this.required;
-      this.textField.clearButtonVisible = this.clearButtonVisible;
-      this.textField.setAttribute('error-message', this.errorMessage);
-      this.textField.setAttribute('helper-text', this.helperText);
-    }
+    this.__renderSlottedField();
 
     this.overlay = this.overlay || this.shadowRoot!.querySelector('#overlay');
 
@@ -270,112 +300,55 @@ export class VcfMonthPicker extends ElementMixin(
   }
 
   protected firstUpdated() {
-    this._createTextField();
+    this.textField = this.querySelector('vaadin-text-field') as TextField;
+    (this.textField as any)._onKeyDown = this._onKeyDown.bind(this);
+
     this._tooltipController = new TooltipController(this, 'tooltip');
     this._tooltipController.setPosition('top');
     this.addController(this._tooltipController);
     if (this.value) {
       this.__boundInputValueChanged();
     }
-
-    // Inject a <style> element into the light DOM to style the toggle button inside the month picker text field
-    const style = document.createElement('style');
-    style.textContent = `
-    /*
-      * These rules target a <vaadin-text-field> element with a child element
-      * having the 'toggle-button' part. It is used to style the calendar toggle
-      * button inside the month picker text field.
-      *
-      * The rules are scoped through the component selector and only applies to
-      * the toggle button in the month picker input field.
-      */
-      vaadin-text-field > [part="toggle-button"] {
-        flex: none;
-        width: 1em;
-        height: 1em;
-        line-height: 1;
-        font-size: var(--vcf-month-picker-icon-size);
-        text-align: center;
-        color: var(--lumo-contrast-60pct);
-        transition: 0.2s color;
-        cursor: var(--lumo-clickable-cursor);
-      }
-
-      vaadin-text-field > [part="toggle-button"]::before {
-        display: block;
-        font-family: var(--vcf-month-picker-icons-font-family);
-        content: var(--vcf-month-picker-toggle-calendar-icon);
-      }
-
-      vaadin-text-field > [part="toggle-button"]:hover {
-        color: var(--lumo-body-text-color);
-      }
-
-      vaadin-text-field[readonly] > [part="toggle-button"] {
-        color: var(--lumo-contrast-20pct);
-        cursor: default;
-      }
-    `;
-    this.appendChild(style);
   }
 
-  // Creates the text field element in the slot="text-field-slot"
-  _createTextField() {
-    if (!this.textField) {
-      // Create toggle button
-      const suffixDiv = document.createElement('div');
-      suffixDiv.setAttribute('part', 'toggle-button');
-      suffixDiv.setAttribute('slot', 'suffix');
-      suffixDiv.setAttribute('aria-hidden', 'true');
-      suffixDiv.addEventListener('click', e => {
-        this.__toggle(e);
-      });
-
-      // Create text field
-      const txtfield = document.createElement('vaadin-text-field');
-      txtfield.setAttribute('slot', 'text-field-slot');
-      txtfield.setAttribute('id', 'textField');
-      txtfield.setAttribute('value', this.inputValue ?? '');
-      txtfield.setAttribute('label', this.label);
-      txtfield.setAttribute('placeholder', this.placeholder);
-      txtfield.disabled = this.disabled;
-      txtfield.readonly = this.readonly;
-      txtfield.invalid = this.invalid;
-      txtfield.required = this.required;
-      txtfield.clearButtonVisible = this.clearButtonVisible;
-      txtfield.setAttribute('error-message', this.errorMessage);
-      txtfield.setAttribute('helper-text', this.helperText);
-      txtfield.setAttribute('autocomplete', 'off');
-
-      // Add event listeners to the text field
-      txtfield.addEventListener('click', e => {
-        this.__boundInputClicked(e);
-      });
-      txtfield.addEventListener('change', () => {
-        this.__boundInputValueChanged();
-      });
-      txtfield.addEventListener('blur', () => {
-        this._onBlur();
-      });
-      txtfield.addEventListener('focus', () => {
-        this._onFocus();
-      });
-
-      // Accessibility attributes
-      txtfield.setAttribute('role', 'combobox');
-      txtfield.setAttribute('aria-haspopup', 'dialog');
-      txtfield.setAttribute('aria-expanded', this.opened ? 'true' : 'false');
-      (txtfield as any)._onKeyDown = this._onKeyDown.bind(this);
-
-      // Add toggle button to suffix slot
-      txtfield.appendChild(suffixDiv);
-
-      // Store a reference to the created vaadin-text-field
-      this.textField = txtfield as TextField;
-
-      // Append text field to slot
-      this.appendChild(txtfield);
-    }
+  private __renderSlottedField() {
+    render(
+      html`
+        <vaadin-text-field
+          slot="text-field-slot"
+          .label="${this.label}"
+          .value="${this.inputValue ?? ''}"
+          .placeholder="${this.placeholder}"
+          .readonly="${this.readonly}"
+          .disabled="${this.disabled}"
+          .invalid="${this.invalid}"
+          .required="${this.required}"
+          .clearButtonVisible="${this.clearButtonVisible}"
+          .helperText="${this.helperText}"
+          .errorMessage="${this.errorMessage}"
+          @click="${this.__boundInputClicked}"
+          @change="${this.__boundInputValueChanged}"
+          @blur="${this._onBlur}"
+          @focus="${this._onFocus}"
+        >
+          <input
+            slot="input"
+            role="combobox"
+            aria-haspopup="dialog"
+            aria-controls="overlay"
+            aria-expanded="${this.opened ? 'true' : 'false'}"
+          />
+          <div
+            part="toggle-button"
+            slot="suffix"
+            aria-hidden="true"
+            @click="${this.__toggle}"
+          ></div>
+        </vaadin-text-field>
+      `,
+      this,
+      { host: this }
+    );
   }
 
   render() {
@@ -400,18 +373,6 @@ export class VcfMonthPicker extends ElementMixin(
       >
       </vcf-month-picker-overlay>
     `;
-  }
-
-  // This method is necessary to ensure the toggle button appears
-  // before the clear button
-  _updateSuffixStyles() {
-    const suffixElement = this.textField?.shadowRoot
-      ?.querySelector('vaadin-input-container')
-      ?.shadowRoot?.querySelector('[name="suffix"]') as HTMLElement;
-    if (suffixElement) {
-      suffixElement.style.display = 'flex';
-      suffixElement.style.flexDirection = 'row-reverse';
-    }
   }
 
   _onVaadinOverlayClose(e: OverlayCloseEvent) {
@@ -730,10 +691,6 @@ export class VcfMonthPicker extends ElementMixin(
   private __overlayOpenedChanged(e: CustomEvent) {
     const opened = e.detail.value;
     this.opened = opened;
-    this.textField?.setAttribute(
-      'aria-expanded',
-      this.opened ? 'true' : 'false'
-    );
     if (opened) {
       this.textField?.focus();
     }
