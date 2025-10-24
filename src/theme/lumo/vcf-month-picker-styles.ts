@@ -1,9 +1,3 @@
-import '@vaadin/vaadin-lumo-styles/color.js';
-import '@vaadin/vaadin-lumo-styles/sizing.js';
-import '@vaadin/vaadin-lumo-styles/spacing.js';
-import '@vaadin/vaadin-lumo-styles/style.js';
-import '@vaadin/vaadin-lumo-styles/typography.js';
-import '@vaadin/vaadin-lumo-styles/mixins/menu-overlay.js';
 import {
   css,
   registerStyles,
@@ -85,7 +79,8 @@ registerStyles(
     }
 
     .yearButton:focus {
-      box-shadow: 0 0 0 var(--_focus-ring-width) var(--_focus-ring-color);
+      box-shadow: 0 0 0 1px var(--lumo-base-color),
+        0 0 0 calc(var(--_focus-ring-width) + 1px) var(--_focus-ring-color);
     }
 
     .yearButton[disabled] {
@@ -107,69 +102,32 @@ registerStyles(
       content: var(--vcf-month-picker-calendar-next-year-icon);
     }
 
+    .month-grid {
+      gap: var(--lumo-space-xs);
+    }
+
     .month-button {
-      position: relative;
-      border-radius: var(--lumo-border-radius-l);
+      border-radius: var(--lumo-border-radius-m);
       --_month-button-height: var(--lumo-size-m);
     }
 
-    .month-button::before {
-      content: '';
-      position: absolute;
-      z-index: -1;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: calc(100% - 6px);
-      height: calc(100% - 6px);
-      border-radius: var(--lumo-border-radius-m);
-    }
-
-    .month-button:hover::before {
+    .month-button:hover {
       background-color: var(--lumo-primary-color-10pct);
     }
 
     .month-button:focus {
-      box-shadow: inset 0 0 0 var(--_focus-ring-width) var(--_focus-ring-color);
+      box-shadow: 0 0 0 1px var(--lumo-base-color),
+        0 0 0 calc(var(--_focus-ring-width) + 1px) var(--_focus-ring-color);
     }
 
     .month-button[selected] {
       color: var(--lumo-base-color);
       font-weight: 600;
-    }
-
-    .month-button[selected]::before {
-      background: var(--lumo-primary-color);
+      background-color: var(--lumo-primary-color);
     }
 
     .month-button[disabled] {
       color: var(--lumo-disabled-text-color);
     }
   `
-);
-
-registerStyles(
-  'vcf-month-picker-overlay',
-  css`
-    [part='content'] {
-      padding: var(--lumo-space-s);
-    }
-
-    :host([bottom-aligned]) [part~='overlay'] {
-      margin-bottom: var(--lumo-space-xs);
-    }
-
-    :host([top-aligned]) [part~='overlay'] {
-      margin-top: var(--lumo-space-xs);
-    }
-
-    @media (max-width: 420px), (max-height: 420px) {
-      [part='content'] {
-        -webkit-mask-image: none;
-        mask-image: none;
-      }
-    }
-  `,
-  // @ts-ignore For unknown reason tsc doesn't allow options.include, although options' type is defined as object
-  { include: ['lumo-menu-overlay'], moduleId: 'vcf-month-picker-overlay' }
 );
