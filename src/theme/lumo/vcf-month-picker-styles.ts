@@ -63,45 +63,6 @@ registerStyles(
       line-height: 1;
     }
 
-    .yearButton {
-      outline: none;
-      border: none;
-      border-radius: var(--lumo-border-radius-s);
-      background: none;
-      padding: 0;
-      height: var(--lumo-button-size, var(--lumo-size-m));
-      width: var(--lumo-button-size, var(--lumo-size-m));
-      color: var(--lumo-primary-color);
-    }
-
-    .yearButton:hover {
-      background: var(--lumo-primary-color-10pct);
-    }
-
-    .yearButton:focus {
-      box-shadow: 0 0 0 1px var(--lumo-base-color),
-        0 0 0 calc(var(--_focus-ring-width) + 1px) var(--_focus-ring-color);
-    }
-
-    .yearButton[disabled] {
-      color: var(--lumo-disabled-color);
-    }
-
-    .yearButton::before {
-      font-family: var(--vcf-month-picker-calendar-icons-font-family);
-      font-size: calc(var(--vcf-month-picker-calendar-icon-size) * 1.25);
-      text-align: center;
-      cursor: var(--lumo-clickable-cursor);
-    }
-
-    .prevYear::before {
-      content: var(--vcf-month-picker-calendar-prev-year-icon);
-    }
-
-    .nextYear::before {
-      content: var(--vcf-month-picker-calendar-next-year-icon);
-    }
-
     .month-grid {
       gap: var(--lumo-space-xs);
     }
@@ -128,6 +89,43 @@ registerStyles(
 
     .month-button[disabled] {
       color: var(--lumo-disabled-text-color);
+    }
+  `
+);
+
+registerStyles(
+  'vaadin-button',
+  css`
+    :host([theme='vcf-month-picker']) {
+      margin: 0;
+      padding: 0;
+      min-width: auto;
+      background-color: transparent;
+      font-size: var(--lumo-font-size-s);
+      height: var(--lumo-size-m);
+      width: var(--lumo-size-m);
+    }
+
+    :host([theme='vcf-month-picker']:hover) {
+      background-color: var(--lumo-primary-color-10pct);
+    }
+
+    :host([theme='vcf-month-picker']) [part='label'] {
+      padding: 0;
+      font-family: var(--vcf-month-picker-calendar-icons-font-family);
+      font-size: calc(var(--vcf-month-picker-calendar-icon-size) * 1.25);
+    }
+
+    :host([theme='vcf-month-picker']) [part='label']::before {
+      cursor: var(--lumo-clickable-cursor);
+    }
+
+    :host([theme='vcf-month-picker'][slot^='prev']) [part='label']::before {
+      content: var(--vcf-month-picker-calendar-prev-year-icon);
+    }
+
+    :host([theme='vcf-month-picker'][slot^='next']) [part='label']::before {
+      content: var(--vcf-month-picker-calendar-next-year-icon);
     }
   `
 );

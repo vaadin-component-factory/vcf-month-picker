@@ -16,9 +16,11 @@
  * limitations under the License.
  * #L%
  */
-import { html, css, LitElement } from 'lit';
+import '@vaadin/button';
+import { html, css, render, LitElement, PropertyValues } from 'lit';
 import { ElementMixin } from '@vaadin/component-base/src/element-mixin.js';
 import { PolylitMixin } from '@vaadin/component-base/src/polylit-mixin.js';
+import { generateUniqueId } from '@vaadin/component-base/src/unique-id-utils.js';
 import { ThemableMixin } from '@vaadin/vaadin-themable-mixin/vaadin-themable-mixin.js';
 import { customElement, property } from 'lit/decorators.js';
 import {
@@ -76,6 +78,8 @@ class MonthPickerCalendar extends ElementMixin(
    */
   @property({ type: String }) maxYear: string | null = null;
 
+  private _uniqueId = `vcf-month-picker-calendar-${generateUniqueId()}`;
+
   static get styles() {
     return css`
       :host([hidden]) {
@@ -113,35 +117,45 @@ class MonthPickerCalendar extends ElementMixin(
 
     // add accessibility attributes to calendar
     this.setAttribute('role', 'dialog');
-    this.setAttribute('aria-labelledby', 'year-label');
+    this.setAttribute('aria-labelledby', this._uniqueId);
   }
 
-  render() {
+  protected update(props: PropertyValues): void {
+    super.update(props);
+
     const isNextYearDisabled = this.__IsNextYearDisabled();
     const isPrevYearDisabled = this.__IsPrevYearDisabled();
 
-    return html` <div class="header">
-        <button
-          class="yearButton prevYear"
+    render(
+      html`
+        <vaadin-button
+          slot="prev-year"
+          theme="vcf-month-picker"
           aria-label="Previous year"
-          @click=${() => {
-            this.openedYear -= 1;
-          }}
-          @keydown=${(e: KeyboardEvent) => clickOnKey(e, ' ', 'Enter')}
-          ?disabled=${isPrevYearDisabled}
-          tabindex=${isPrevYearDisabled ? '-1' : '0'}
-        ></button>
-        <span id="year-label" aria-live="polite">${this.openedYear}</span>
-        <button
-          class="yearButton nextYear"
+          @click="${this.__onPrevYearClick}"
+          .disabled=${isPrevYearDisabled}
+        ></vaadin-button>
+        <div slot="year-label" aria-live="polite" id="${this._uniqueId}">
+          ${this.openedYear}
+        </div>
+        <vaadin-button
+          slot="next-year"
+          theme="vcf-month-picker"
           aria-label="Next year"
-          @click=${() => {
-            this.openedYear += 1;
-          }}
-          @keydown=${(e: KeyboardEvent) => clickOnKey(e, ' ', 'Enter')}
-          ?disabled=${isNextYearDisabled}
-          tabindex=${isNextYearDisabled ? '-1' : '0'}
-        ></button>
+          @click="${this.__onNextYearClick}"
+          .disabled=${isNextYearDisabled}
+        ></vaadin-button>
+      `,
+      this,
+      { host: this }
+    );
+  }
+
+  render() {
+    return html` <div class="header">
+        <slot name="prev-year"></slot>
+        <slot name="year-label"></slot>
+        <slot name="next-year"></slot>
       </div>
 
       <div class="month-grid" role="grid">
@@ -194,6 +208,14 @@ class MonthPickerCalendar extends ElementMixin(
 
   private __IsNextYearDisabled() {
     return isYearDisabled(this.openedYear + 1, this.minYear, this.maxYear);
+  }
+
+  private __onPrevYearClick() {
+    this.openedYear -= 1;
+  }
+
+  private __onNextYearClick() {
+    this.openedYear += 1;
   }
 
   /**
@@ -261,8 +283,8 @@ class MonthPickerCalendar extends ElementMixin(
   }
 
   private _focusPreviousYearButton(event: KeyboardEvent) {
-    const prevYearButton = this.shadowRoot!.querySelector('.prevYear');
-    if (prevYearButton && prevYearButton instanceof HTMLButtonElement) {
+    const prevYearButton = this.querySelector('vaadin-button');
+    if (prevYearButton) {
       event.preventDefault();
       prevYearButton.focus();
     }

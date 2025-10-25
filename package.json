@@ -45,8 +45,8 @@
   },
   "dependencies": {
     "@vaadin/a11y-base": "^25.0.0-beta1",
+    "@vaadin/button": "^25.0.0-beta1",
     "@vaadin/component-base": "^25.0.0-beta1",
-    "@vaadin/overlay": "^25.0.0-beta1",
     "@vaadin/popover": "^25.0.0-beta1",
     "@vaadin/text-field": "^25.0.0-beta1",
     "@vaadin/vaadin-lumo-styles": "^25.0.0-beta1",
