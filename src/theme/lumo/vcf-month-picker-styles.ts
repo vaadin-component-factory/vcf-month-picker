@@ -56,38 +56,38 @@ registerStyles(
       --_focus-ring-width: var(--vaadin-focus-ring-width, 2px);
     }
 
-    .header {
+    [part='header'] {
       padding-bottom: var(--lumo-space-s);
       font-size: var(--lumo-font-size-l);
       font-weight: 500;
       line-height: 1;
     }
 
-    .month-grid {
+    [part='month-grid'] {
       gap: var(--lumo-space-xs);
     }
 
-    .month-button {
+    [part~='month'] {
       border-radius: var(--lumo-border-radius-m);
       --_month-button-height: var(--lumo-size-m);
     }
 
-    .month-button:hover {
+    [part~='month']:hover {
       background-color: var(--lumo-primary-color-10pct);
     }
 
-    .month-button:focus {
+    [part~='month']:focus {
       box-shadow: 0 0 0 1px var(--lumo-base-color),
         0 0 0 calc(var(--_focus-ring-width) + 1px) var(--_focus-ring-color);
     }
 
-    .month-button[selected] {
+    [part~='selected-month'] {
       color: var(--lumo-base-color);
       font-weight: 600;
       background-color: var(--lumo-primary-color);
     }
 
-    .month-button[disabled] {
+    [part~='disabled-month'] {
       color: var(--lumo-disabled-text-color);
     }
   `

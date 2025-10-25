@@ -86,19 +86,19 @@ class MonthPickerCalendar extends ElementMixin(
         display: none !important;
       }
 
-      .header {
+      [part='header'] {
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
 
-      .month-grid {
+      [part='month-grid'] {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         min-width: 16rem;
       }
 
-      .month-button {
+      [part~='month'] {
         text-align: center;
         cursor: default;
         outline: none;
@@ -106,7 +106,7 @@ class MonthPickerCalendar extends ElementMixin(
         line-height: var(--_month-button-height);
       }
 
-      .month-button[disabled] {
+      [part~='disabled-month'] {
         pointer-events: none;
       }
     `;
@@ -152,13 +152,13 @@ class MonthPickerCalendar extends ElementMixin(
   }
 
   render() {
-    return html` <div class="header">
+    return html`
+      <div part="header">
         <slot name="prev-year"></slot>
         <slot name="year-label"></slot>
         <slot name="next-year"></slot>
       </div>
-
-      <div class="month-grid" role="grid">
+      <div part="month-grid" role="grid">
         ${this.i18n?.monthLabels
           .map((label, index) => ({
             content: label,
@@ -178,28 +178,35 @@ class MonthPickerCalendar extends ElementMixin(
             const shouldBeFocusable =
               selected || (!this.value && monthIndex === 0);
 
-            return html` <div
-              class="month-button"
-              data-value=${value}
-              ?selected=${selected}
-              aria-selected=${selected}
-              @click=${() =>
-                disabled ||
-                this.dispatchEvent(
-                  new CustomEvent('month-clicked', { detail: value })
-                )}
-              @keydown=${(e: KeyboardEvent) => this.__onMonthsKeyDown(e)}
-              ?disabled=${disabled}
-              aria-disabled=${disabled}
-              tabindex=${shouldBeFocusable ? '0' : '-1'}
-              role="gridcell"
-              aria-label="${this.i18n.monthNames[monthIndex]} ${this
-                .openedYear}"
-            >
-              ${content}
-            </div>`;
+            const monthPart = [
+              'month',
+              disabled && 'disabled-month',
+              selected && 'selected-month',
+            ]
+              .filter(Boolean)
+              .join(' ');
+
+            return html`
+              <div
+                part="${monthPart}"
+                data-value=${value}
+                ?selected=${selected}
+                aria-selected=${selected}
+                @click=${this.__onMonthsClick}
+                @keydown=${this.__onMonthsKeyDown}
+                ?disabled=${disabled}
+                aria-disabled=${disabled}
+                tabindex=${shouldBeFocusable ? '0' : '-1'}
+                role="gridcell"
+                aria-label="${this.i18n.monthNames[monthIndex]} ${this
+                  .openedYear}"
+              >
+                ${content}
+              </div>
+            `;
           })}
-      </div>`;
+      </div>
+    `;
   }
 
   private __IsPrevYearDisabled() {
@@ -218,12 +225,23 @@ class MonthPickerCalendar extends ElementMixin(
     this.openedYear += 1;
   }
 
+  private __onMonthsClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (target.hasAttribute('disabled')) {
+      return;
+    }
+
+    this.dispatchEvent(
+      new CustomEvent('month-clicked', { detail: target.dataset.value })
+    );
+  }
+
   /**
    * Handles keyboard navigation for month selection.
    */
   private __onMonthsKeyDown(event: KeyboardEvent) {
     const monthButtons = Array.from(
-      this.shadowRoot!.querySelectorAll('.month-button:not([disabled])')
+      this.shadowRoot!.querySelectorAll('[part~="month"]:not([disabled])')
     ) as HTMLElement[];
 
     const focusedButton = this.shadowRoot!.activeElement as HTMLElement;
@@ -275,11 +293,7 @@ class MonthPickerCalendar extends ElementMixin(
    * Returns the month button element that should be focused (tabindex=0).
    */
   get focusedMonth(): HTMLElement | null {
-    return (
-      this.shadowRoot!.querySelector('.month-grid')!.querySelector(
-        '.month-button[tabindex="0"]'
-      ) || null
-    );
+    return this.shadowRoot!.querySelector('[part~="month"][tabindex="0"]');
   }
 
   private _focusPreviousYearButton(event: KeyboardEvent) {

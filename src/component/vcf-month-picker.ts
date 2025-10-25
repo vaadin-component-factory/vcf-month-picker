@@ -575,7 +575,7 @@ export class VcfMonthPicker extends SlotStylesMixin(
     if (this.opened) {
       event.preventDefault();
       event.stopPropagation();
-      this.calendar?.focusedMonth!.focus();
+      this.calendar?.focusedMonth?.focus();
     }
   }
 
