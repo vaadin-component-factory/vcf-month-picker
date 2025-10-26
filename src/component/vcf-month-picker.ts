@@ -236,45 +236,18 @@ export class VcfMonthPicker extends SlotStylesMixin(
 
     /**
      * These rules target a <vaadin-text-field> element with a child element
-     * having the 'toggle-button' part. It is used to style the calendar toggle
-     * button inside the month picker text field.
-     *
-     * The rules are scoped through the component selector and only applies to
-     * the toggle button in the month picker input field.
+     * having the 'toggle-button' class name. We can't use `::slotted()` as
+     * the toggle button is not a direct child of the month picker element.
      */
-    // TODO move Lumo related CSS to the dedicated file
     return [
       `
-        ${tag} [part="toggle-button"] {
+        ${tag} .toggle-button {
           flex: none;
           width: 1em;
           height: 1em;
           line-height: 1;
-          font-size: var(--vcf-month-picker-icon-size);
           text-align: center;
-          color: var(--lumo-contrast-60pct);
-          transition: 0.2s color;
-          cursor: var(--lumo-clickable-cursor);
           order: 2;
-        }
-
-        ${tag} [part="toggle-button"]::before {
-          display: block;
-          font-family: var(--vcf-month-picker-icons-font-family);
-          content: var(--vcf-month-picker-toggle-calendar-icon);
-        }
-
-        ${tag} [part="toggle-button"]:hover {
-          color: var(--lumo-body-text-color);
-        }
-
-        ${tag}[readonly] [part="toggle-button"] {
-          color: var(--lumo-contrast-20pct);
-          cursor: default;
-        }
-
-        ${tag} vaadin-popover::part(content) {
-          padding: var(--lumo-space-s);
         }
       `,
     ];
@@ -332,7 +305,7 @@ export class VcfMonthPicker extends SlotStylesMixin(
             aria-expanded="${this.opened ? 'true' : 'false'}"
           />
           <div
-            part="toggle-button"
+            class="toggle-button"
             slot="suffix"
             aria-hidden="true"
             @click="${this.__toggle}"

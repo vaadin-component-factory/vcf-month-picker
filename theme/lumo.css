@@ -17,6 +17,33 @@ vcf-month-picker[readonly] {
   pointer-events: none;
 }
 
+vcf-month-picker .toggle-button {
+  font-size: var(--vcf-month-picker-icon-size);
+  text-align: center;
+  color: var(--lumo-contrast-60pct);
+  transition: 0.2s color;
+  cursor: var(--lumo-clickable-cursor);
+}
+
+vcf-month-picker .toggle-button::before {
+  display: block;
+  font-family: var(--vcf-month-picker-icons-font-family);
+  content: var(--vcf-month-picker-toggle-calendar-icon);
+}
+
+vcf-month-picker .toggle-button:hover {
+  color: var(--lumo-body-text-color);
+}
+
+vcf-month-picker[readonly] .toggle-button {
+  color: var(--lumo-contrast-20pct);
+  cursor: default;
+}
+
+vcf-month-picker vaadin-popover::part(content) {
+  padding: var(--lumo-space-s);
+}
+
 vcf-month-picker-calendar {
   --vcf-month-picker-calendar-font-family: var(--lumo-font-family);
   --vcf-month-picker-calendar-font-size: var(--lumo-font-size-m);
