@@ -130,7 +130,6 @@ class MonthPickerCalendar extends ElementMixin(
       html`
         <vaadin-button
           slot="prev-year"
-          theme="vcf-month-picker"
           aria-label="Previous year"
           @click="${this.__onPrevYearClick}"
           .disabled=${isPrevYearDisabled}
@@ -140,7 +139,6 @@ class MonthPickerCalendar extends ElementMixin(
         </div>
         <vaadin-button
           slot="next-year"
-          theme="vcf-month-picker"
           aria-label="Next year"
           @click="${this.__onNextYearClick}"
           .disabled=${isNextYearDisabled}

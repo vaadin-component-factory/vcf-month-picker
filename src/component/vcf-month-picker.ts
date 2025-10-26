@@ -741,9 +741,10 @@ export class VcfMonthPicker extends SlotStylesMixin(
     }
   }
 
-  /** @protected */
   disconnectedCallback() {
     super.disconnectedCallback();
     this.opened = false;
   }
 }
+
+customElements.define('vcf-month-picker', VcfMonthPicker);
