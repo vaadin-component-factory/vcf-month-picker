@@ -355,6 +355,7 @@ export class VcfMonthPicker extends SlotStylesMixin(
             .minYear=${this.minYear}
             .maxYear=${this.maxYear}
             .i18n=${this.i18n}
+            @focusin="${this.__onOverlayFocusin}"
             @month-clicked=${(e: CustomEvent) => {
               this._onMonthClicked(e.detail);
             }}
@@ -681,12 +682,15 @@ export class VcfMonthPicker extends SlotStylesMixin(
   private __overlayOpenedChanged(e: CustomEvent) {
     const opened = e.detail.value;
     if (opened) {
+      const overlay = (this.overlay as any)._overlayElement;
+
       // Ensure popover is positioned below the input field
       // and above the helper / error message elements
-      (this.overlay as any)._overlayElement.positionTarget =
-        this.textField!.shadowRoot!.querySelector(
-          '[part="input-field"]'
-        ) as HTMLElement;
+      overlay.positionTarget = this.textField!.shadowRoot!.querySelector(
+        '[part="input-field"]'
+      ) as HTMLElement;
+
+      overlay.restoreFocusNode = this.textField!.inputElement;
     }
     this.opened = opened;
     if (opened) {
@@ -701,6 +705,12 @@ export class VcfMonthPicker extends SlotStylesMixin(
         },
       })
     );
+  }
+
+  private __onOverlayFocusin() {
+    // Make popover restore focus on close - by default, this
+    // only happens when trigger is either `click` or `focus`.
+    (this.overlay as any)._overlayElement.restoreFocusOnClose = true;
   }
 
   private _onMonthClicked(selectedValue: string) {
