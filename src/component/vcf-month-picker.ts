@@ -578,7 +578,19 @@ export class VcfMonthPicker extends SlotStylesMixin(
     if (this.opened) {
       event.preventDefault();
       event.stopPropagation();
-      this.calendar?.focusedMonth?.focus();
+      const { focusedMonth } = this.calendar;
+      if (focusedMonth) {
+        // If there is an enabled month, focus it
+        focusedMonth.focus();
+      } else {
+        // Find first non-disabled button
+        const button = Array.from(
+          this.calendar.querySelectorAll('vaadin-button')
+        ).find(btn => !btn.disabled);
+        if (button) {
+          button.focus();
+        }
+      }
     }
   }
 

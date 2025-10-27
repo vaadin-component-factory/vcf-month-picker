@@ -191,6 +191,7 @@ class MonthPickerCalendar extends SlotStylesMixin(
           slot="prev-year"
           aria-label="Previous year"
           @click="${this.__onPrevYearClick}"
+          @keydown="${this.__onPrevYearKeydown}"
           .disabled=${isPrevYearDisabled}
         ></vaadin-button>
         <div slot="year-label" aria-live="polite" id="${this._uniqueId}">
@@ -233,7 +234,7 @@ class MonthPickerCalendar extends SlotStylesMixin(
           .map(({ content, value, monthIndex, disabled, selected }) => {
             // Set tabindex="0" for the selected month, or the first month if no value is selected
             const shouldBeFocusable =
-              selected || (!this.value && monthIndex === 0);
+              !disabled && (selected || (!this.value && monthIndex === 0));
 
             const monthPart = [
               'month',
@@ -280,6 +281,23 @@ class MonthPickerCalendar extends SlotStylesMixin(
 
   private __onNextYearClick() {
     this.openedYear += 1;
+  }
+
+  private __onPrevYearKeydown(event: KeyboardEvent) {
+    // If the max year is disabled, all corresponding month
+    // date cells in the calendar are not focusable. Detect
+    // this case and move the focus to the input element.
+    if (event.key === 'Tab') {
+      const monthButtons = Array.from(
+        this.shadowRoot!.querySelectorAll('[part~="month"]:not([disabled])')
+      ) as HTMLElement[];
+      if (monthButtons.length === 0) {
+        event.preventDefault();
+
+        const picker = this.closest('vcf-month-picker');
+        picker?.querySelector('input')?.focus();
+      }
+    }
   }
 
   private __onMonthsClick(event: MouseEvent) {
