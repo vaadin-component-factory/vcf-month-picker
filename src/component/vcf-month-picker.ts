@@ -16,7 +16,6 @@
  * limitations under the License.
  * #L%
  */
-import { isKeyboardActive } from '@vaadin/a11y-base/src/focus-utils.js';
 import { ElementMixin } from '@vaadin/component-base/src/element-mixin.js';
 import { PolylitMixin } from '@vaadin/component-base/src/polylit-mixin.js';
 import { TooltipController } from '@vaadin/component-base/src/tooltip-controller.js';
@@ -216,6 +215,8 @@ export class VcfMonthPicker extends SlotStylesMixin(
 
   private __keepInputValue = false;
 
+  private _closedByEscape = false;
+
   private _tooltipController!: TooltipController;
 
   static get styles() {
@@ -378,10 +379,9 @@ export class VcfMonthPicker extends SlotStylesMixin(
     `;
   }
 
-  _onOverlayClosed() {
-    // TODO this restores value on Esc, but flag also applies to Enter
-    // Use dedicated `_onKeyDown` listener instead
-    if (isKeyboardActive()) {
+  private _onOverlayClosed() {
+    if (this._closedByEscape) {
+      this._closedByEscape = false;
       this.textField!.value = this.inputValue!;
     }
   }
@@ -551,9 +551,9 @@ export class VcfMonthPicker extends SlotStylesMixin(
     }
   }
 
-  /* eslint no-empty: 0 */
   private _onEscape() {
     if (this.opened) {
+      this._closedByEscape = true;
     }
   }
 

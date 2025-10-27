@@ -45,7 +45,6 @@
     "storybook:build": "tsc && npm run analyze -- --exclude dist && build-storybook"
   },
   "dependencies": {
-    "@vaadin/a11y-base": "^25.0.0-beta1",
     "@vaadin/button": "^25.0.0-beta1",
     "@vaadin/component-base": "^25.0.0-beta1",
     "@vaadin/popover": "^25.0.0-beta1",
