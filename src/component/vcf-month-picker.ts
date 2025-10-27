@@ -572,7 +572,9 @@ export class VcfMonthPicker extends SlotStylesMixin(
 
   private __toggle(e: Event) {
     e.stopPropagation();
-    this.opened = !this.opened;
+    if (!this.disabled && !this.readonly) {
+      this.opened = !this.opened;
+    }
   }
 
   private __inputValueChanged() {
