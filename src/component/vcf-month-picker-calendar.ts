@@ -20,6 +20,7 @@ import '@vaadin/button';
 import { html, css, render, LitElement, PropertyValues } from 'lit';
 import { ElementMixin } from '@vaadin/component-base/src/element-mixin.js';
 import { PolylitMixin } from '@vaadin/component-base/src/polylit-mixin.js';
+import { SlotStylesMixin } from '@vaadin/component-base/src/slot-styles-mixin.js';
 import { generateUniqueId } from '@vaadin/component-base/src/unique-id-utils.js';
 import { ThemableMixin } from '@vaadin/vaadin-themable-mixin/vaadin-themable-mixin.js';
 import { customElement, property } from 'lit/decorators.js';
@@ -39,8 +40,8 @@ interface I18n {
  * @element vcf-month-picker-calendar displays a calendar for selecting a month.
  */
 @customElement('vcf-month-picker-calendar')
-class MonthPickerCalendar extends ElementMixin(
-  ThemableMixin(PolylitMixin(LitElement))
+class MonthPickerCalendar extends SlotStylesMixin(
+  ElementMixin(ThemableMixin(PolylitMixin(LitElement)))
 ) {
   static get is() {
     return 'vcf-month-picker-calendar';
@@ -90,26 +91,84 @@ class MonthPickerCalendar extends ElementMixin(
         display: flex;
         justify-content: space-between;
         align-items: center;
+        padding-bottom: var(--vaadin-padding-s);
       }
 
       [part='month-grid'] {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        min-width: 16rem;
+        gap: var(--vaadin-gap-xs);
       }
 
       [part~='month'] {
-        text-align: center;
-        cursor: default;
-        outline: none;
-        height: var(--_month-button-height);
-        line-height: var(--_month-button-height);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: var(--vaadin-clickable-cursor);
+        border-radius: var(
+          --vaadin-month-picker-month-border-radius,
+          var(--vaadin-radius-m)
+        );
+        height: var(--vcf-month-picker-month-height, 2rem);
       }
 
       [part~='disabled-month'] {
         pointer-events: none;
       }
+
+      [part~='month']:focus-visible {
+        outline: var(--vaadin-focus-ring-width) solid
+          var(--vaadin-focus-ring-color);
+        outline-offset: calc(var(--vaadin-focus-ring-width) * -1);
+      }
+
+      [part~='selected-month'] {
+        background-color: var(--vaadin-text-color);
+        color: var(--vaadin-background-color);
+      }
+
+      [part~='selected-month']:focus-visible {
+        outline-offset: 1px;
+      }
+
+      ::slotted(vaadin-button) {
+        padding: 4px;
+      }
     `;
+  }
+
+  // @ts-expect-error overriding property from `SlotStylesMixinClass`
+  override get slotStyles(): string[] {
+    const tag = this.localName;
+
+    /**
+     * These rules target slotted `<vaadin-button>` elements to apply base
+     * styles for icons that can be then overridden by the theme CSS. This
+     * is needed as we can't use `::part()` after `::slotted()` selector.
+     * Use `:where()` to ensure this CSS has lower specificity than Lumo.
+     */
+    return [
+      `
+        ${tag} :where(vaadin-button:not([dir='rtl'])[slot^='prev'])::part(label),
+        ${tag} :where(vaadin-button[dir='rtl'][slot^='next'])::part(label) {
+          rotate: 90deg;
+        }
+
+        ${tag} :where(vaadin-button:not([dir='rtl'])[slot^='next'])::part(label),
+        ${tag} :where(vaadin-button[dir='rtl'][slot^='prev'])::part(label) {
+          rotate: -90deg;
+        }
+
+        ${tag} :where(vaadin-button)::part(label)::before {
+          background: currentColor;
+          content: '';
+          display: block;
+          height: var(--vaadin-icon-size, 1lh);
+          mask: var(--_vaadin-icon-chevron-down) 50% / var(--vaadin-icon-visual-size, 100%) no-repeat;
+          width: var(--vaadin-icon-size, 1lh);
+        }
+      `,
+    ];
   }
 
   ready() {

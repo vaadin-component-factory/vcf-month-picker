@@ -23,10 +23,14 @@ vcf-month-picker .toggle-button {
   color: var(--lumo-contrast-60pct);
   transition: 0.2s color;
   cursor: var(--lumo-clickable-cursor);
+  mask: none;
+  width: auto;
+  height: auto;
 }
 
 vcf-month-picker .toggle-button::before {
   display: block;
+  background: transparent;
   font-family: var(--vcf-month-picker-icons-font-family);
   content: var(--vcf-month-picker-toggle-calendar-icon);
 }
@@ -75,20 +79,23 @@ vcf-month-picker-calendar::part(header) {
 
 vcf-month-picker-calendar::part(month-grid) {
   gap: var(--lumo-space-xs);
+  min-width: 16rem;
 }
 
 vcf-month-picker-calendar::part(month) {
   border-radius: var(--lumo-border-radius-m);
-  --_month-button-height: var(--lumo-size-m);
+  cursor: var(--lumo-clickable-cursor);
+  --vcf-month-picker-month-height: var(--lumo-size-m);
 }
 
 vcf-month-picker-calendar::part(month):hover {
   background-color: var(--lumo-primary-color-10pct);
 }
 
-vcf-month-picker-calendar::part(month):focus {
+vcf-month-picker-calendar::part(month):focus-visible {
   box-shadow: 0 0 0 1px var(--lumo-base-color),
     0 0 0 calc(var(--_focus-ring-width) + 1px) var(--_focus-ring-color);
+  outline: none;
 }
 
 vcf-month-picker-calendar::part(selected-month) {
@@ -101,7 +108,7 @@ vcf-month-picker-calendar::part(disabled-month) {
   color: var(--lumo-disabled-text-color);
 }
 
-vcf-month-picker-calendar > vaadin-button {
+vcf-month-picker-calendar > vaadin-button[slot] {
   margin: 0;
   padding: 0;
   min-width: auto;
@@ -119,10 +126,14 @@ vcf-month-picker-calendar > vaadin-button::part(label) {
   padding: 0;
   font-family: var(--vcf-month-picker-calendar-icons-font-family);
   font-size: calc(var(--vcf-month-picker-calendar-icon-size) * 1.25);
+  rotate: 0deg;
 }
 
 vcf-month-picker-calendar > vaadin-button::part(label)::before {
-  cursor: var(--lumo-clickable-cursor);
+  background: transparent;
+  height: auto;
+  width: auto;
+  mask: none;
 }
 
 vcf-month-picker-calendar > vaadin-button[slot^='prev']::part(label)::before {

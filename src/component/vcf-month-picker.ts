@@ -238,16 +238,45 @@ export class VcfMonthPicker extends SlotStylesMixin(
      * These rules target a <vaadin-text-field> element with a child element
      * having the 'toggle-button' class name. We can't use `::slotted()` as
      * the toggle button is not a direct child of the month picker element.
+     * Also for `vaadin-popover` we can't use `::part()` after `::slotted()`.
+     * Use `:where()` to ensure this CSS has lower specificity than Lumo.
      */
     return [
       `
-        ${tag} .toggle-button {
+        :where(${tag}) .toggle-button {
           flex: none;
           width: 1em;
           height: 1em;
           line-height: 1;
           text-align: center;
           order: 2;
+          mask-image: var(--_vaadin-icon-calendar);
+          color: var(--vaadin-input-field-button-text-color, var(--vaadin-text-color-secondary));
+          cursor: var(--vaadin-clickable-cursor);
+          touch-action: manipulation;
+          -webkit-tap-highlight-color: transparent;
+          -webkit-user-select: none;
+          user-select: none;
+        }
+
+        :where(${tag}) .toggle-button::before {
+          background: currentColor;
+          content: '';
+          display: block;
+          height: var(--vaadin-icon-size, 1lh);
+          width: var(--vaadin-icon-size, 1lh);
+          mask-size: var(--vaadin-icon-visual-size, 100%);
+          mask-position: 50%;
+          mask-repeat: no-repeat;
+        }
+
+        :where(${tag}):is([readonly], [disabled]) .toggle-button {
+          color: var(--vaadin-text-color-disabled);
+          cursor: var(--vaadin-disabled-cursor);
+        }
+
+        :where(${tag}) vaadin-popover::part(overlay) {
+          min-width: var(--vaadin-field-default-width, 12em);
         }
       `,
     ];
