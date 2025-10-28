@@ -25,7 +25,6 @@ import { Popover } from '@vaadin/popover';
 import '@vaadin/popover';
 import '@vaadin/text-field';
 import { TextField } from '@vaadin/text-field/vaadin-text-field';
-import { ThemableMixin } from '@vaadin/vaadin-themable-mixin/vaadin-themable-mixin.js';
 import { ThemeDetectionMixin } from '@vaadin/vaadin-themable-mixin/vaadin-theme-detection-mixin.js';
 import { css, html, LitElement, PropertyValues, render } from 'lit';
 import { property } from 'lit/decorators.js';
@@ -58,7 +57,7 @@ const REF_CENTURY_DEFAULT = toRefCentury(new Date().getFullYear());
  * @element vcf-month-picker
  */
 export class VcfMonthPicker extends SlotStylesMixin(
-  ElementMixin(ThemeDetectionMixin(ThemableMixin(PolylitMixin(LitElement))))
+  ElementMixin(ThemeDetectionMixin(PolylitMixin(LitElement)))
 ) {
   static get is() {
     return 'vcf-month-picker';
