@@ -26,6 +26,7 @@ import '@vaadin/popover';
 import '@vaadin/text-field';
 import { TextField } from '@vaadin/text-field/vaadin-text-field';
 import { ThemableMixin } from '@vaadin/vaadin-themable-mixin/vaadin-themable-mixin.js';
+import { ThemeDetectionMixin } from '@vaadin/vaadin-themable-mixin/vaadin-theme-detection-mixin.js';
 import { css, html, LitElement, PropertyValues, render } from 'lit';
 import { property } from 'lit/decorators.js';
 import './vcf-month-picker-calendar.js';
@@ -57,7 +58,7 @@ const REF_CENTURY_DEFAULT = toRefCentury(new Date().getFullYear());
  * @element vcf-month-picker
  */
 export class VcfMonthPicker extends SlotStylesMixin(
-  ElementMixin(ThemableMixin(PolylitMixin(LitElement)))
+  ElementMixin(ThemeDetectionMixin(ThemableMixin(PolylitMixin(LitElement))))
 ) {
   static get is() {
     return 'vcf-month-picker';
@@ -223,10 +224,32 @@ export class VcfMonthPicker extends SlotStylesMixin(
     return css`
       :host {
         display: inline-block;
+        box-sizing: border-box;
       }
 
       :host([hidden]) {
         display: none !important;
+      }
+
+      :host([readonly]) {
+        pointer-events: none;
+      }
+
+      :host([data-application-theme='lumo']) {
+        --vcf-month-picker-icons-font-family: 'lumo-icons';
+        --vcf-month-picker-toggle-calendar-icon: var(--lumo-icons-calendar);
+        --vcf-month-picker-icon-size: var(--lumo-icon-size-m);
+        font-family: var(
+          --vcf-month-picker-font-family,
+          var(--lumo-font-family)
+        );
+        font-size: var(
+          --vcf-month-picker-font-size,
+          var(var(--lumo-font-size-m))
+        );
+        -webkit-tap-highlight-color: transparent;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
     `;
   }
@@ -234,17 +257,17 @@ export class VcfMonthPicker extends SlotStylesMixin(
   // @ts-expect-error overriding property from `SlotStylesMixinClass`
   override get slotStyles(): string[] {
     const tag = this.localName;
+    const lumo = '[data-application-theme="lumo"]';
 
     /**
      * These rules target a <vaadin-text-field> element with a child element
      * having the 'toggle-button' class name. We can't use `::slotted()` as
      * the toggle button is not a direct child of the month picker element.
      * Also for `vaadin-popover` we can't use `::part()` after `::slotted()`.
-     * Use `:where()` to ensure this CSS has lower specificity than Lumo.
      */
     return [
       `
-        :where(${tag}) .toggle-button {
+        ${tag} .toggle-button {
           flex: none;
           width: 1em;
           height: 1em;
@@ -260,7 +283,7 @@ export class VcfMonthPicker extends SlotStylesMixin(
           user-select: none;
         }
 
-        :where(${tag}) .toggle-button::before {
+        ${tag} .toggle-button::before {
           background: currentColor;
           content: '';
           display: block;
@@ -271,13 +294,44 @@ export class VcfMonthPicker extends SlotStylesMixin(
           mask-repeat: no-repeat;
         }
 
-        :where(${tag}):is([readonly], [disabled]) .toggle-button {
+        ${tag}:is([readonly], [disabled]) .toggle-button {
           color: var(--vaadin-text-color-disabled);
           cursor: var(--vaadin-disabled-cursor);
         }
 
-        :where(${tag}) vaadin-popover::part(overlay) {
+        ${tag} vaadin-popover::part(overlay) {
           min-width: var(--vaadin-field-default-width, 12em);
+        }
+
+        ${tag}${lumo} .toggle-button {
+          font-size: var(--vcf-month-picker-icon-size);
+          text-align: center;
+          color: var(--lumo-contrast-60pct);
+          transition: 0.2s color;
+          cursor: var(--lumo-clickable-cursor);
+          mask: none;
+          width: auto;
+          height: auto;
+        }
+
+        ${tag}${lumo} .toggle-button::before {
+          display: block;
+          background: transparent;
+          font-family: var(--vcf-month-picker-icons-font-family);
+          content: var(--vcf-month-picker-toggle-calendar-icon);
+        }
+
+        ${tag}${lumo} .toggle-button:hover {
+          color: var(--lumo-body-text-color);
+        }
+
+        ${tag}${lumo}[readonly] .toggle-button {
+          color: var(--lumo-contrast-20pct);
+          cursor: default;
+        }
+
+        ${tag}${lumo} vaadin-popover::part(content) {
+          padding: var(--lumo-space-s);
         }
       `,
     ];
