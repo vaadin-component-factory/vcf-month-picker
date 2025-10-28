@@ -19,7 +19,10 @@
 import { ElementMixin } from '@vaadin/component-base/src/element-mixin.js';
 import { PolylitMixin } from '@vaadin/component-base/src/polylit-mixin.js';
 import { TooltipController } from '@vaadin/component-base/src/tooltip-controller.js';
-import { Overlay, OverlayCloseEvent } from '@vaadin/overlay/vaadin-overlay';
+import { SlotStylesMixin } from '@vaadin/component-base/src/slot-styles-mixin.js';
+import { generateUniqueId } from '@vaadin/component-base/src/unique-id-utils.js';
+import { Popover } from '@vaadin/popover';
+import '@vaadin/popover';
 import '@vaadin/text-field';
 import { TextField } from '@vaadin/text-field/vaadin-text-field';
 import { ThemableMixin } from '@vaadin/vaadin-themable-mixin/vaadin-themable-mixin.js';
@@ -27,7 +30,6 @@ import { css, html, LitElement, PropertyValues, render } from 'lit';
 import { property } from 'lit/decorators.js';
 import './vcf-month-picker-calendar.js';
 import { MonthPickerCalendar } from './vcf-month-picker-calendar.js';
-import './vcf-month-picker-overlay.js';
 import {
   applyRefCentury,
   monthAllowed,
@@ -54,8 +56,8 @@ const REF_CENTURY_DEFAULT = toRefCentury(new Date().getFullYear());
  *
  * @element vcf-month-picker
  */
-export class VcfMonthPicker extends ElementMixin(
-  ThemableMixin(PolylitMixin(LitElement))
+export class VcfMonthPicker extends SlotStylesMixin(
+  ElementMixin(ThemableMixin(PolylitMixin(LitElement)))
 ) {
   static get is() {
     return 'vcf-month-picker';
@@ -201,28 +203,21 @@ export class VcfMonthPicker extends ElementMixin(
    */
   private _referenceCentury = REF_CENTURY_DEFAULT;
 
+  private _uniqueId = `vcf-month-picker-${generateUniqueId()}`;
+
   private textField?: TextField;
 
-  // Can't use @query for overlay, because it will be teleported to body
-  private overlay: Overlay | null = null;
+  private overlay!: Popover;
 
-  private calendar: MonthPickerCalendar | null = null;
-
-  private __boundInputClicked = this.__inputClicked.bind(this);
-
-  private __boundInputValueChanged = this.__inputValueChanged.bind(this);
-
-  private __boundOverlayOpenedChanged = this.__overlayOpenedChanged.bind(this);
-
-  private __boundRenderOverlay = this.__renderOverlay.bind(this);
+  private calendar!: MonthPickerCalendar;
 
   private __dispatchChange = false;
 
   private __keepInputValue = false;
 
-  private _tooltipController: TooltipController | undefined;
-
   private _closedByEscape = false;
+
+  private _tooltipController!: TooltipController;
 
   static get styles() {
     return css`
@@ -236,32 +231,62 @@ export class VcfMonthPicker extends ElementMixin(
     `;
   }
 
-  update(props: PropertyValues) {
-    const observer = new MutationObserver(() => {
-      this._updateSuffixStyles();
-    });
-    observer.observe(this.shadowRoot!, { childList: true, subtree: true });
+  // @ts-expect-error overriding property from `SlotStylesMixinClass`
+  override get slotStyles(): string[] {
+    const tag = this.localName;
 
+    /**
+     * These rules target a <vaadin-text-field> element with a child element
+     * having the 'toggle-button' class name. We can't use `::slotted()` as
+     * the toggle button is not a direct child of the month picker element.
+     * Also for `vaadin-popover` we can't use `::part()` after `::slotted()`.
+     * Use `:where()` to ensure this CSS has lower specificity than Lumo.
+     */
+    return [
+      `
+        :where(${tag}) .toggle-button {
+          flex: none;
+          width: 1em;
+          height: 1em;
+          line-height: 1;
+          text-align: center;
+          order: 2;
+          mask-image: var(--_vaadin-icon-calendar);
+          color: var(--vaadin-input-field-button-text-color, var(--vaadin-text-color-secondary));
+          cursor: var(--vaadin-clickable-cursor);
+          touch-action: manipulation;
+          -webkit-tap-highlight-color: transparent;
+          -webkit-user-select: none;
+          user-select: none;
+        }
+
+        :where(${tag}) .toggle-button::before {
+          background: currentColor;
+          content: '';
+          display: block;
+          height: var(--vaadin-icon-size, 1lh);
+          width: var(--vaadin-icon-size, 1lh);
+          mask-size: var(--vaadin-icon-visual-size, 100%);
+          mask-position: 50%;
+          mask-repeat: no-repeat;
+        }
+
+        :where(${tag}):is([readonly], [disabled]) .toggle-button {
+          color: var(--vaadin-text-color-disabled);
+          cursor: var(--vaadin-disabled-cursor);
+        }
+
+        :where(${tag}) vaadin-popover::part(overlay) {
+          min-width: var(--vaadin-field-default-width, 12em);
+        }
+      `,
+    ];
+  }
+
+  update(props: PropertyValues) {
     super.update(props);
 
-    if (this.textField) {
-      this.textField.setAttribute('value', this.inputValue ?? '');
-      this.textField.setAttribute('label', this.label);
-      this.textField.setAttribute('placeholder', this.placeholder);
-      this.textField.disabled = this.disabled;
-      this.textField.readonly = this.readonly;
-      this.textField.invalid = this.invalid;
-      this.textField.required = this.required;
-      this.textField.clearButtonVisible = this.clearButtonVisible;
-      this.textField.setAttribute('error-message', this.errorMessage);
-      this.textField.setAttribute('helper-text', this.helperText);
-    }
-
-    this.overlay = this.overlay || this.shadowRoot!.querySelector('#overlay');
-
-    if (this.overlay?.shadowRoot) {
-      this.overlay.requestContentUpdate();
-    }
+    this.__renderSlottedContent();
 
     if (this.__dispatchChange && props.has('value')) {
       this.dispatchEvent(new CustomEvent('value-changed', { bubbles: true }));
@@ -270,170 +295,95 @@ export class VcfMonthPicker extends ElementMixin(
   }
 
   protected firstUpdated() {
-    this._createTextField();
+    (this.textField as any)._onKeyDown = this._onKeyDown.bind(this);
+
     this._tooltipController = new TooltipController(this, 'tooltip');
     this._tooltipController.setPosition('top');
+    this._tooltipController.setTarget(this.textField!);
     this.addController(this._tooltipController);
     if (this.value) {
-      this.__boundInputValueChanged();
+      this.__inputValueChanged();
     }
-
-    // Inject a <style> element into the light DOM to style the toggle button inside the month picker text field
-    const style = document.createElement('style');
-    style.textContent = `
-    /*
-      * These rules target a <vaadin-text-field> element with a child element
-      * having the 'toggle-button' part. It is used to style the calendar toggle
-      * button inside the month picker text field.
-      *
-      * The rules are scoped through the component selector and only applies to
-      * the toggle button in the month picker input field.
-      */
-      vaadin-text-field > [part="toggle-button"] {
-        flex: none;
-        width: 1em;
-        height: 1em;
-        line-height: 1;
-        font-size: var(--vcf-month-picker-icon-size);
-        text-align: center;
-        color: var(--lumo-contrast-60pct);
-        transition: 0.2s color;
-        cursor: var(--lumo-clickable-cursor);
-      }
-
-      vaadin-text-field > [part="toggle-button"]::before {
-        display: block;
-        font-family: var(--vcf-month-picker-icons-font-family);
-        content: var(--vcf-month-picker-toggle-calendar-icon);
-      }
-
-      vaadin-text-field > [part="toggle-button"]:hover {
-        color: var(--lumo-body-text-color);
-      }
-
-      vaadin-text-field[readonly] > [part="toggle-button"] {
-        color: var(--lumo-contrast-20pct);
-        cursor: default;
-      }
-    `;
-    this.appendChild(style);
   }
 
-  // Creates the text field element in the slot="text-field-slot"
-  _createTextField() {
-    if (!this.textField) {
-      // Create toggle button
-      const suffixDiv = document.createElement('div');
-      suffixDiv.setAttribute('part', 'toggle-button');
-      suffixDiv.setAttribute('slot', 'suffix');
-      suffixDiv.setAttribute('aria-hidden', 'true');
-      suffixDiv.addEventListener('click', e => {
-        this.__toggle(e);
-      });
+  private __renderSlottedContent() {
+    render(
+      html`
+        <vaadin-text-field
+          id="${this._uniqueId}"
+          slot="text-field"
+          .label="${this.label}"
+          .value="${this.inputValue ?? ''}"
+          .placeholder="${this.placeholder}"
+          .readonly="${this.readonly}"
+          .disabled="${this.disabled}"
+          .invalid="${this.invalid}"
+          .required="${this.required}"
+          .clearButtonVisible="${this.clearButtonVisible}"
+          .helperText="${this.helperText}"
+          .errorMessage="${this.errorMessage}"
+          @click="${this.__inputClicked}"
+          @change="${this.__inputValueChanged}"
+          @blur="${this._onBlur}"
+          @focus="${this._onFocus}"
+        >
+          <input
+            slot="input"
+            role="combobox"
+            aria-haspopup="dialog"
+            aria-controls="overlay"
+            aria-expanded="${this.opened ? 'true' : 'false'}"
+          />
+          <div
+            class="toggle-button"
+            slot="suffix"
+            aria-hidden="true"
+            @click="${this.__toggle}"
+          ></div>
+        </vaadin-text-field>
+        <vaadin-popover
+          slot="overlay"
+          for="${this._uniqueId}"
+          .trigger="${[]}"
+          .opened="${this.opened}"
+          position="bottom-start"
+          @opened-changed="${this.__overlayOpenedChanged}"
+          @closed="${this._onOverlayClosed}"
+        >
+          <vcf-month-picker-calendar
+            .value=${this.value}
+            .minYear=${this.minYear}
+            .maxYear=${this.maxYear}
+            .i18n=${this.i18n}
+            @focusin="${this.__onOverlayFocusin}"
+            @month-clicked=${(e: CustomEvent) => {
+              this._onMonthClicked(e.detail);
+            }}
+          ></vcf-month-picker-calendar>
+        </vaadin-popover>
+      `,
+      this,
+      { host: this }
+    );
 
-      // Create text field
-      const txtfield = document.createElement('vaadin-text-field');
-      txtfield.setAttribute('slot', 'text-field-slot');
-      txtfield.setAttribute('id', 'textField');
-      txtfield.setAttribute('value', this.inputValue ?? '');
-      txtfield.setAttribute('label', this.label);
-      txtfield.setAttribute('placeholder', this.placeholder);
-      txtfield.disabled = this.disabled;
-      txtfield.readonly = this.readonly;
-      txtfield.invalid = this.invalid;
-      txtfield.required = this.required;
-      txtfield.clearButtonVisible = this.clearButtonVisible;
-      txtfield.setAttribute('error-message', this.errorMessage);
-      txtfield.setAttribute('helper-text', this.helperText);
-      txtfield.setAttribute('autocomplete', 'off');
-
-      // Add event listeners to the text field
-      txtfield.addEventListener('click', e => {
-        this.__boundInputClicked(e);
-      });
-      txtfield.addEventListener('change', () => {
-        this.__boundInputValueChanged();
-      });
-      txtfield.addEventListener('blur', () => {
-        this._onBlur();
-      });
-      txtfield.addEventListener('focus', () => {
-        this._onFocus();
-      });
-
-      // Accessibility attributes
-      txtfield.setAttribute('role', 'combobox');
-      txtfield.setAttribute('aria-haspopup', 'dialog');
-      txtfield.setAttribute('aria-expanded', this.opened ? 'true' : 'false');
-      (txtfield as any)._onKeyDown = this._onKeyDown.bind(this);
-
-      // Add toggle button to suffix slot
-      txtfield.appendChild(suffixDiv);
-
-      // Store a reference to the created vaadin-text-field
-      this.textField = txtfield as TextField;
-
-      // Append text field to slot
-      this.appendChild(txtfield);
-    }
+    this.overlay = this.overlay || this.querySelector('vaadin-popover')!;
+    this.calendar =
+      this.calendar || this.querySelector('vcf-month-picker-calendar')!;
+    this.textField = this.textField || this.querySelector('vaadin-text-field')!;
   }
 
   render() {
     return html`
-      <slot name="text-field-slot"></slot>
+      <slot name="text-field"></slot>
+      <slot name="overlay"></slot>
       <slot name="tooltip"></slot>
-
-      <vcf-month-picker-overlay
-        id="overlay"
-        .positionTarget=${this.textField?.shadowRoot?.querySelector(
-          '[part="input-field"]'
-        ) as HTMLInputElement}
-        no-vertical-overlap
-        restore-focus-on-close
-        .restoreFocusNode=${this.textField?.inputElement}
-        .opened=${this.opened}
-        @opened-changed=${this.__boundOverlayOpenedChanged}
-        .renderer=${this.__boundRenderOverlay}
-        @vaadin-overlay-escape-press="${this._onOverlayEscapePress}"
-        @vaadin-overlay-close="${this._onVaadinOverlayClose}"
-        @vaadin-overlay-closing="${this._onOverlayClosed}"
-      >
-      </vcf-month-picker-overlay>
     `;
   }
 
-  // This method is necessary to ensure the toggle button appears
-  // before the clear button
-  _updateSuffixStyles() {
-    const suffixElement = this.textField?.shadowRoot
-      ?.querySelector('vaadin-input-container')
-      ?.shadowRoot?.querySelector('[name="suffix"]') as HTMLElement;
-    if (suffixElement) {
-      suffixElement.style.display = 'flex';
-      suffixElement.style.flexDirection = 'row-reverse';
-    }
-  }
-
-  _onVaadinOverlayClose(e: OverlayCloseEvent) {
-    if (
-      e.detail.sourceEvent &&
-      e.detail.sourceEvent.composedPath().includes(this)
-    ) {
-      e.preventDefault();
-    }
-  }
-
-  _onOverlayEscapePress() {
-    this._closedByEscape = true;
-    this.opened = false;
-  }
-
-  _onOverlayClosed() {
+  private _onOverlayClosed() {
     if (this._closedByEscape) {
-      this.textField!.value = this.inputValue!;
       this._closedByEscape = false;
-    } else {
-      this.opened = false;
+      this.textField!.value = this.inputValue!;
     }
   }
 
@@ -602,9 +552,9 @@ export class VcfMonthPicker extends ElementMixin(
     }
   }
 
-  /* eslint no-empty: 0 */
   private _onEscape() {
     if (this.opened) {
+      this._closedByEscape = true;
     }
   }
 
@@ -612,7 +562,7 @@ export class VcfMonthPicker extends ElementMixin(
     if (this.opened) {
       this.opened = false;
     } else {
-      this.__boundInputValueChanged();
+      this.__inputValueChanged();
     }
   }
 
@@ -628,7 +578,19 @@ export class VcfMonthPicker extends ElementMixin(
     if (this.opened) {
       event.preventDefault();
       event.stopPropagation();
-      this.calendar?.focusedMonth!.focus();
+      const { focusedMonth } = this.calendar;
+      if (focusedMonth) {
+        // If there is an enabled month, focus it
+        focusedMonth.focus();
+      } else {
+        // Find first non-disabled button
+        const button = Array.from(
+          this.calendar.querySelectorAll('vaadin-button')
+        ).find(btn => !btn.disabled);
+        if (button) {
+          button.focus();
+        }
+      }
     }
   }
 
@@ -652,7 +614,9 @@ export class VcfMonthPicker extends ElementMixin(
 
   private __toggle(e: Event) {
     e.stopPropagation();
-    this.opened = !this.opened;
+    if (!this.disabled && !this.readonly) {
+      this.opened = !this.opened;
+    }
   }
 
   private __inputValueChanged() {
@@ -729,11 +693,18 @@ export class VcfMonthPicker extends ElementMixin(
 
   private __overlayOpenedChanged(e: CustomEvent) {
     const opened = e.detail.value;
+    if (opened) {
+      const overlay = (this.overlay as any)._overlayElement;
+
+      // Ensure popover is positioned below the input field
+      // and above the helper / error message elements
+      overlay.positionTarget = this.textField!.shadowRoot!.querySelector(
+        '[part="input-field"]'
+      ) as HTMLElement;
+
+      overlay.restoreFocusNode = this.textField!.inputElement;
+    }
     this.opened = opened;
-    this.textField?.setAttribute(
-      'aria-expanded',
-      this.opened ? 'true' : 'false'
-    );
     if (opened) {
       this.textField?.focus();
     }
@@ -748,18 +719,10 @@ export class VcfMonthPicker extends ElementMixin(
     );
   }
 
-  private __renderOverlay(root: HTMLElement) {
-    const content = html` <vcf-month-picker-calendar
-      .value=${this.value}
-      .minYear=${this.minYear}
-      .maxYear=${this.maxYear}
-      .i18n=${this.i18n}
-      @month-clicked=${(e: CustomEvent) => {
-        this._onMonthClicked(e.detail);
-      }}
-    ></vcf-month-picker-calendar>`;
-    render(content, root);
-    this.__initializeCalendar();
+  private __onOverlayFocusin() {
+    // Make popover restore focus on close - by default, this
+    // only happens when trigger is either `click` or `focus`.
+    (this.overlay as any)._overlayElement.restoreFocusOnClose = true;
   }
 
   private _onMonthClicked(selectedValue: string) {
@@ -776,11 +739,6 @@ export class VcfMonthPicker extends ElementMixin(
       const inputValue = VcfMonthPicker.formatValue(yearMonth!, this.i18n);
       this.__commitChanges(inputValue, yearMonth!, selectedValue);
     }
-  }
-
-  private __initializeCalendar() {
-    this.calendar =
-      this.calendar || this.overlay!.querySelector('vcf-month-picker-calendar');
   }
 
   private __updateOpenedYear() {
@@ -809,9 +767,10 @@ export class VcfMonthPicker extends ElementMixin(
     }
   }
 
-  /** @protected */
   disconnectedCallback() {
     super.disconnectedCallback();
     this.opened = false;
   }
 }
+
+customElements.define('vcf-month-picker', VcfMonthPicker);

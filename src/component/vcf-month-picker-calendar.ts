@@ -16,9 +16,12 @@
  * limitations under the License.
  * #L%
  */
-import { html, css, LitElement } from 'lit';
+import '@vaadin/button';
+import { html, css, render, LitElement, PropertyValues } from 'lit';
 import { ElementMixin } from '@vaadin/component-base/src/element-mixin.js';
 import { PolylitMixin } from '@vaadin/component-base/src/polylit-mixin.js';
+import { SlotStylesMixin } from '@vaadin/component-base/src/slot-styles-mixin.js';
+import { generateUniqueId } from '@vaadin/component-base/src/unique-id-utils.js';
 import { ThemableMixin } from '@vaadin/vaadin-themable-mixin/vaadin-themable-mixin.js';
 import { customElement, property } from 'lit/decorators.js';
 import {
@@ -37,8 +40,8 @@ interface I18n {
  * @element vcf-month-picker-calendar displays a calendar for selecting a month.
  */
 @customElement('vcf-month-picker-calendar')
-class MonthPickerCalendar extends ElementMixin(
-  ThemableMixin(PolylitMixin(LitElement))
+class MonthPickerCalendar extends SlotStylesMixin(
+  ElementMixin(ThemableMixin(PolylitMixin(LitElement)))
 ) {
   static get is() {
     return 'vcf-month-picker-calendar';
@@ -76,36 +79,96 @@ class MonthPickerCalendar extends ElementMixin(
    */
   @property({ type: String }) maxYear: string | null = null;
 
+  private _uniqueId = `vcf-month-picker-calendar-${generateUniqueId()}`;
+
   static get styles() {
     return css`
       :host([hidden]) {
         display: none !important;
       }
 
-      .header {
+      [part='header'] {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        padding-bottom: var(--vaadin-padding-s);
       }
 
-      .month-grid {
+      [part='month-grid'] {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        min-width: 16rem;
+        gap: var(--vaadin-gap-xs);
       }
 
-      .month-button {
-        text-align: center;
-        cursor: default;
-        outline: none;
-        height: var(--_month-button-height);
-        line-height: var(--_month-button-height);
+      [part~='month'] {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: var(--vaadin-clickable-cursor);
+        border-radius: var(
+          --vaadin-month-picker-month-border-radius,
+          var(--vaadin-radius-m)
+        );
+        height: var(--vcf-month-picker-month-height, 2rem);
       }
 
-      .month-button[disabled] {
+      [part~='disabled-month'] {
         pointer-events: none;
       }
+
+      [part~='month']:focus-visible {
+        outline: var(--vaadin-focus-ring-width) solid
+          var(--vaadin-focus-ring-color);
+        outline-offset: calc(var(--vaadin-focus-ring-width) * -1);
+      }
+
+      [part~='selected-month'] {
+        background-color: var(--vaadin-text-color);
+        color: var(--vaadin-background-color);
+      }
+
+      [part~='selected-month']:focus-visible {
+        outline-offset: 1px;
+      }
+
+      ::slotted(vaadin-button) {
+        padding: 4px;
+      }
     `;
+  }
+
+  // @ts-expect-error overriding property from `SlotStylesMixinClass`
+  override get slotStyles(): string[] {
+    const tag = this.localName;
+
+    /**
+     * These rules target slotted `<vaadin-button>` elements to apply base
+     * styles for icons that can be then overridden by the theme CSS. This
+     * is needed as we can't use `::part()` after `::slotted()` selector.
+     * Use `:where()` to ensure this CSS has lower specificity than Lumo.
+     */
+    return [
+      `
+        ${tag} :where(vaadin-button:not([dir='rtl'])[slot^='prev'])::part(label),
+        ${tag} :where(vaadin-button[dir='rtl'][slot^='next'])::part(label) {
+          rotate: 90deg;
+        }
+
+        ${tag} :where(vaadin-button:not([dir='rtl'])[slot^='next'])::part(label),
+        ${tag} :where(vaadin-button[dir='rtl'][slot^='prev'])::part(label) {
+          rotate: -90deg;
+        }
+
+        ${tag} :where(vaadin-button)::part(label)::before {
+          background: currentColor;
+          content: '';
+          display: block;
+          height: var(--vaadin-icon-size, 1lh);
+          mask: var(--_vaadin-icon-chevron-down) 50% / var(--vaadin-icon-visual-size, 100%) no-repeat;
+          width: var(--vaadin-icon-size, 1lh);
+        }
+      `,
+    ];
   }
 
   ready() {
@@ -113,38 +176,47 @@ class MonthPickerCalendar extends ElementMixin(
 
     // add accessibility attributes to calendar
     this.setAttribute('role', 'dialog');
-    this.setAttribute('aria-labelledby', 'year-label');
+    this.setAttribute('aria-labelledby', this._uniqueId);
   }
 
-  render() {
+  protected update(props: PropertyValues): void {
+    super.update(props);
+
     const isNextYearDisabled = this.__IsNextYearDisabled();
     const isPrevYearDisabled = this.__IsPrevYearDisabled();
 
-    return html` <div class="header">
-        <button
-          class="yearButton prevYear"
+    render(
+      html`
+        <vaadin-button
+          slot="prev-year"
           aria-label="Previous year"
-          @click=${() => {
-            this.openedYear -= 1;
-          }}
-          @keydown=${(e: KeyboardEvent) => clickOnKey(e, ' ', 'Enter')}
-          ?disabled=${isPrevYearDisabled}
-          tabindex=${isPrevYearDisabled ? '-1' : '0'}
-        ></button>
-        <span id="year-label" aria-live="polite">${this.openedYear}</span>
-        <button
-          class="yearButton nextYear"
+          @click="${this.__onPrevYearClick}"
+          @keydown="${this.__onPrevYearKeydown}"
+          .disabled=${isPrevYearDisabled}
+        ></vaadin-button>
+        <div slot="year-label" aria-live="polite" id="${this._uniqueId}">
+          ${this.openedYear}
+        </div>
+        <vaadin-button
+          slot="next-year"
           aria-label="Next year"
-          @click=${() => {
-            this.openedYear += 1;
-          }}
-          @keydown=${(e: KeyboardEvent) => clickOnKey(e, ' ', 'Enter')}
-          ?disabled=${isNextYearDisabled}
-          tabindex=${isNextYearDisabled ? '-1' : '0'}
-        ></button>
-      </div>
+          @click="${this.__onNextYearClick}"
+          .disabled=${isNextYearDisabled}
+        ></vaadin-button>
+      `,
+      this,
+      { host: this }
+    );
+  }
 
-      <div class="month-grid" role="grid">
+  render() {
+    return html`
+      <div part="header">
+        <slot name="prev-year"></slot>
+        <slot name="year-label"></slot>
+        <slot name="next-year"></slot>
+      </div>
+      <div part="month-grid" role="grid">
         ${this.i18n?.monthLabels
           .map((label, index) => ({
             content: label,
@@ -162,30 +234,37 @@ class MonthPickerCalendar extends ElementMixin(
           .map(({ content, value, monthIndex, disabled, selected }) => {
             // Set tabindex="0" for the selected month, or the first month if no value is selected
             const shouldBeFocusable =
-              selected || (!this.value && monthIndex === 0);
+              !disabled && (selected || (!this.value && monthIndex === 0));
 
-            return html` <div
-              class="month-button"
-              data-value=${value}
-              ?selected=${selected}
-              aria-selected=${selected}
-              @click=${() =>
-                disabled ||
-                this.dispatchEvent(
-                  new CustomEvent('month-clicked', { detail: value })
-                )}
-              @keydown=${(e: KeyboardEvent) => this.__onMonthsKeyDown(e)}
-              ?disabled=${disabled}
-              aria-disabled=${disabled}
-              tabindex=${shouldBeFocusable ? '0' : '-1'}
-              role="gridcell"
-              aria-label="${this.i18n.monthNames[monthIndex]} ${this
-                .openedYear}"
-            >
-              ${content}
-            </div>`;
+            const monthPart = [
+              'month',
+              disabled && 'disabled-month',
+              selected && 'selected-month',
+            ]
+              .filter(Boolean)
+              .join(' ');
+
+            return html`
+              <div
+                part="${monthPart}"
+                data-value=${value}
+                ?selected=${selected}
+                aria-selected=${selected}
+                @click=${this.__onMonthsClick}
+                @keydown=${this.__onMonthsKeyDown}
+                ?disabled=${disabled}
+                aria-disabled=${disabled}
+                tabindex=${shouldBeFocusable ? '0' : '-1'}
+                role="gridcell"
+                aria-label="${this.i18n.monthNames[monthIndex]} ${this
+                  .openedYear}"
+              >
+                ${content}
+              </div>
+            `;
           })}
-      </div>`;
+      </div>
+    `;
   }
 
   private __IsPrevYearDisabled() {
@@ -196,12 +275,48 @@ class MonthPickerCalendar extends ElementMixin(
     return isYearDisabled(this.openedYear + 1, this.minYear, this.maxYear);
   }
 
+  private __onPrevYearClick() {
+    this.openedYear -= 1;
+  }
+
+  private __onNextYearClick() {
+    this.openedYear += 1;
+  }
+
+  private __onPrevYearKeydown(event: KeyboardEvent) {
+    // If the max year is disabled, all corresponding month
+    // date cells in the calendar are not focusable. Detect
+    // this case and move the focus to the input element.
+    if (event.key === 'Tab') {
+      const monthButtons = Array.from(
+        this.shadowRoot!.querySelectorAll('[part~="month"]:not([disabled])')
+      ) as HTMLElement[];
+      if (monthButtons.length === 0) {
+        event.preventDefault();
+
+        const picker = this.closest('vcf-month-picker');
+        picker?.querySelector('input')?.focus();
+      }
+    }
+  }
+
+  private __onMonthsClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (target.hasAttribute('disabled')) {
+      return;
+    }
+
+    this.dispatchEvent(
+      new CustomEvent('month-clicked', { detail: target.dataset.value })
+    );
+  }
+
   /**
    * Handles keyboard navigation for month selection.
    */
   private __onMonthsKeyDown(event: KeyboardEvent) {
     const monthButtons = Array.from(
-      this.shadowRoot!.querySelectorAll('.month-button:not([disabled])')
+      this.shadowRoot!.querySelectorAll('[part~="month"]:not([disabled])')
     ) as HTMLElement[];
 
     const focusedButton = this.shadowRoot!.activeElement as HTMLElement;
@@ -253,16 +368,12 @@ class MonthPickerCalendar extends ElementMixin(
    * Returns the month button element that should be focused (tabindex=0).
    */
   get focusedMonth(): HTMLElement | null {
-    return (
-      this.shadowRoot!.querySelector('.month-grid')!.querySelector(
-        '.month-button[tabindex="0"]'
-      ) || null
-    );
+    return this.shadowRoot!.querySelector('[part~="month"][tabindex="0"]');
   }
 
   private _focusPreviousYearButton(event: KeyboardEvent) {
-    const prevYearButton = this.shadowRoot!.querySelector('.prevYear');
-    if (prevYearButton && prevYearButton instanceof HTMLButtonElement) {
+    const prevYearButton = this.querySelector('vaadin-button');
+    if (prevYearButton) {
       event.preventDefault();
       prevYearButton.focus();
     }
