@@ -22,7 +22,7 @@ import { ElementMixin } from '@vaadin/component-base/src/element-mixin.js';
 import { PolylitMixin } from '@vaadin/component-base/src/polylit-mixin.js';
 import { SlotStylesMixin } from '@vaadin/component-base/src/slot-styles-mixin.js';
 import { generateUniqueId } from '@vaadin/component-base/src/unique-id-utils.js';
-import { ThemableMixin } from '@vaadin/vaadin-themable-mixin/vaadin-themable-mixin.js';
+import { ThemeDetectionMixin } from '@vaadin/vaadin-themable-mixin/vaadin-theme-detection-mixin.js';
 import { customElement, property } from 'lit/decorators.js';
 import {
   clickOnKey,
@@ -41,7 +41,7 @@ interface I18n {
  */
 @customElement('vcf-month-picker-calendar')
 class MonthPickerCalendar extends SlotStylesMixin(
-  ElementMixin(ThemableMixin(PolylitMixin(LitElement)))
+  ElementMixin(ThemeDetectionMixin(PolylitMixin(LitElement)))
 ) {
   static get is() {
     return 'vcf-month-picker-calendar';
@@ -134,12 +134,72 @@ class MonthPickerCalendar extends SlotStylesMixin(
       ::slotted(vaadin-button) {
         padding: 4px;
       }
+
+      :host([data-application-theme='lumo']) {
+        box-sizing: border-box;
+        font-family: var(
+          --vcf-month-picker-calendar-font-family,
+          var(--lumo-font-family)
+        );
+        font-size: var(
+          --vcf-month-picker-calendar-font-size,
+          var(--lumo-font-size-m)
+        );
+        -webkit-tap-highlight-color: transparent;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+
+        --_focus-ring-color: var(
+          --vaadin-focus-ring-color,
+          var(--lumo-primary-color-50pct)
+        );
+        --_focus-ring-width: var(--vaadin-focus-ring-width, 2px);
+      }
+
+      :host([data-application-theme='lumo']) [part='header'] {
+        padding-bottom: var(--lumo-space-s);
+        font-size: var(--lumo-font-size-l);
+        font-weight: 500;
+        line-height: 1;
+      }
+
+      :host([data-application-theme='lumo']) [part='month-grid'] {
+        gap: var(--lumo-space-xs);
+        min-width: 16rem;
+      }
+
+      :host([data-application-theme='lumo']) [part~='month'] {
+        border-radius: var(--lumo-border-radius-m);
+        cursor: var(--lumo-clickable-cursor);
+        --vcf-month-picker-month-height: var(--lumo-size-m);
+      }
+
+      :host([data-application-theme='lumo']) [part~='month']:hover {
+        background-color: var(--lumo-primary-color-10pct);
+      }
+
+      :host([data-application-theme='lumo']) [part~='month']:focus-visible {
+        box-shadow: 0 0 0 1px var(--lumo-base-color),
+          0 0 0 calc(var(--_focus-ring-width) + 1px) var(--_focus-ring-color);
+        outline: none;
+      }
+
+      :host([data-application-theme='lumo']) [part~='selected-month'] {
+        color: var(--lumo-base-color);
+        font-weight: 600;
+        background-color: var(--lumo-primary-color);
+      }
+
+      :host([data-application-theme='lumo']) [part~='disabled-month'] {
+        color: var(--lumo-disabled-text-color);
+      }
     `;
   }
 
   // @ts-expect-error overriding property from `SlotStylesMixinClass`
   override get slotStyles(): string[] {
     const tag = this.localName;
+    const lumo = '[data-application-theme="lumo"]';
 
     /**
      * These rules target slotted `<vaadin-button>` elements to apply base
@@ -159,13 +219,49 @@ class MonthPickerCalendar extends SlotStylesMixin(
           rotate: -90deg;
         }
 
-        ${tag} :where(vaadin-button)::part(label)::before {
+        ${tag} vaadin-button::part(label)::before {
           background: currentColor;
           content: '';
           display: block;
           height: var(--vaadin-icon-size, 1lh);
           mask: var(--_vaadin-icon-chevron-down) 50% / var(--vaadin-icon-visual-size, 100%) no-repeat;
           width: var(--vaadin-icon-size, 1lh);
+        }
+
+        ${tag}${lumo} vaadin-button {
+          margin: 0;
+          padding: 0;
+          min-width: auto;
+          background-color: transparent;
+          font-size: var(--lumo-font-size-s);
+          height: var(--lumo-size-m);
+          width: var(--lumo-size-m);
+        }
+
+        ${tag}${lumo} vaadin-button:hover {
+          background-color: var(--lumo-primary-color-10pct);
+        }
+
+        ${tag}${lumo} vaadin-button::part(label) {
+          padding: 0;
+          font-family: var(--vcf-month-picker-calendar-icons-font-family, 'lumo-icons');
+          font-size: calc(var(--vcf-month-picker-calendar-icon-size, var(--lumo-icon-size-m)) * 1.25);
+          rotate: 0deg;
+        }
+
+        ${tag}${lumo} vaadin-button::part(label)::before {
+          background: transparent;
+          height: auto;
+          width: auto;
+          mask: none;
+        }
+
+        ${tag}${lumo} vaadin-button[slot^='prev']::part(label)::before {
+          content: var(--vcf-month-picker-calendar-prev-year-icon, var(--lumo-icons-chevron-left));
+        }
+
+        ${tag}${lumo} vaadin-button[slot^='next']::part(label)::before {
+          content: var(--vcf-month-picker-calendar-next-year-icon, var(--lumo-icons-chevron-right));
         }
       `,
     ];
