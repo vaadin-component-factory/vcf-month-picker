@@ -234,10 +234,6 @@ class MonthPickerCalendar extends SlotStylesMixin(
           font-size: var(--lumo-font-size-s);
         }
 
-        ${tag}${lumo} vaadin-button:hover {
-          background-color: var(--lumo-primary-color-10pct);
-        }
-
         ${tag}${lumo} vaadin-button::part(label) {
           padding: 0;
           font-family: var(--vcf-month-picker-calendar-icons-font-family, 'lumo-icons');
