@@ -231,15 +231,7 @@ class MonthPickerCalendar extends SlotStylesMixin(
         ${tag}${lumo} vaadin-button {
           margin: 0;
           padding: 0;
-          min-width: auto;
-          background-color: transparent;
           font-size: var(--lumo-font-size-s);
-          height: var(--lumo-size-m);
-          width: var(--lumo-size-m);
-        }
-
-        ${tag}${lumo} vaadin-button:hover {
-          background-color: var(--lumo-primary-color-10pct);
         }
 
         ${tag}${lumo} vaadin-button::part(label) {
@@ -285,6 +277,7 @@ class MonthPickerCalendar extends SlotStylesMixin(
       html`
         <vaadin-button
           slot="prev-year"
+          theme="tertiary icon"
           aria-label="Previous year"
           @click="${this.__onPrevYearClick}"
           @keydown="${this.__onPrevYearKeydown}"
@@ -295,6 +288,7 @@ class MonthPickerCalendar extends SlotStylesMixin(
         </div>
         <vaadin-button
           slot="next-year"
+          theme="tertiary icon"
           aria-label="Next year"
           @click="${this.__onNextYearClick}"
           .disabled=${isNextYearDisabled}
