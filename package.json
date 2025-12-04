@@ -3,7 +3,7 @@
   "description": "Web component for selecting year and month",
   "license": "Apache License 2.0",
   "author": "Vaadin Ltd",
-  "version": "3.0.0",
+  "version": "3.0.0-beta1",
   "type": "module",
   "main": "dist/src/index.js",
   "module": "dist/src/index.js",
@@ -45,6 +45,7 @@
     "storybook:build": "tsc && npm run analyze -- --exclude dist && build-storybook"
   },
   "dependencies": {
+    "@vaadin-component-factory/vcf-month-picker": "^2.0.0",
     "@vaadin/button": "^25.0.0-beta2",
     "@vaadin/component-base": "^25.0.0-beta2",
     "@vaadin/popover": "^25.0.0-beta2",

@@ -48,7 +48,7 @@ class MonthPickerCalendar extends SlotStylesMixin(
   }
 
   static get version() {
-    return '2.0.0';
+    return '3.0.0-beta1';
   }
 
   /**
