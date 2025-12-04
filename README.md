@@ -127,6 +127,15 @@ npm run format
 
 1. Run `npm start` to open the demo.
 
+## Publishing
+
+Update the version in the `package.json`, `vcf-month-picker-calendar.ts` and vcf-month-picker.ts.
+Run `npm login` use a login that can publish to the organization `vaadin-component-factory`
+Run `npm run prepublish`
+Run `npm publish`
+
+If you want to publish a beta version, use `npm publish --tag=beta`
+
 ## Contributing
 
 To contribute to the component, please read [the guideline](https://github.com/vaadin/vaadin-core/blob/master/CONTRIBUTING.md) first.
