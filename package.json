@@ -45,7 +45,6 @@
     "storybook:build": "tsc && npm run analyze -- --exclude dist && build-storybook"
   },
   "dependencies": {
-    "@vaadin-component-factory/vcf-month-picker": "^2.0.0",
     "@vaadin/button": "^25.0.0",
     "@vaadin/component-base": "^25.0.0",
     "@vaadin/popover": "^25.0.0",
