@@ -1,6 +1,5 @@
 import { html, TemplateResult } from 'lit';
 import '../src/vcf-month-picker.js';
-import {property} from "lit/decorators";
 
 export default {
   title: 'VcfMonthPicker',
@@ -13,7 +12,7 @@ export default {
     placeholder: { control: 'text' },
     disabled: { control: 'boolean' },
     readonly: { control: 'boolean' },
-    invalid: { control: 'boolean' }
+    invalid: { control: 'boolean' },
   },
 };
 
@@ -46,7 +45,7 @@ const Template: Story<ArgTypes> = ({
   readonly = false,
   disabled = false,
   required = false,
-  errorMessage = ''
+  errorMessage = '',
 }: ArgTypes) => html`
   <vcf-month-picker
     .label=${label}
@@ -74,4 +73,3 @@ export const CustomValue = Template.bind({});
 CustomValue.args = {
   value: '2019-06',
 };
-
