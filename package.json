@@ -3,7 +3,7 @@
   "description": "Web component for selecting year and month",
   "license": "Apache License 2.0",
   "author": "Vaadin Ltd",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "type": "module",
   "main": "dist/src/index.js",
   "module": "dist/src/index.js",
