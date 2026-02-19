@@ -193,6 +193,16 @@ class MonthPickerCalendar extends SlotStylesMixin(
       :host([data-application-theme='lumo']) [part~='disabled-month'] {
         color: var(--lumo-disabled-text-color);
       }
+
+      :host([data-application-theme='lumo'])
+        [part~='month'][part~='current-month'] {
+        color: var(--lumo-primary-text-color);
+      }
+
+      :host(:not([data-application-theme='lumo']))
+        [part~='month'][part~='current-month'] {
+        background: var(--vaadin-background-container);
+      }
     `;
   }
 
@@ -326,10 +336,16 @@ class MonthPickerCalendar extends SlotStylesMixin(
             const shouldBeFocusable =
               !disabled && (selected || (!this.value && monthIndex === 0));
 
+            const currentDate = new Date();
+            const isCurrentMonth =
+              monthIndex === currentDate.getMonth() &&
+              this.openedYear === currentDate.getFullYear();
+
             const monthPart = [
               'month',
               disabled && 'disabled-month',
               selected && 'selected-month',
+              isCurrentMonth && 'current-month',
             ]
               .filter(Boolean)
               .join(' ');
