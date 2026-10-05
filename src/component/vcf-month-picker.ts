@@ -350,7 +350,7 @@ export class VcfMonthPicker extends SlotStylesMixin(
   protected firstUpdated() {
     (this.textField as any)._onKeyDown = this._onKeyDown.bind(this);
 
-    this._tooltipController = new TooltipController(this, 'tooltip');
+    this._tooltipController = new TooltipController(this);
     this._tooltipController.setPosition('top');
     this._tooltipController.setTarget(this.textField!);
     this.addController(this._tooltipController);
