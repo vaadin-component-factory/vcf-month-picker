@@ -65,7 +65,7 @@ export class VcfMonthPicker extends SlotStylesMixin(
   }
 
   static get version() {
-    return '3.1.1';
+    return '3.2.0';
   }
 
   /**
