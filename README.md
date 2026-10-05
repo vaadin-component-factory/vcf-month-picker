@@ -37,6 +37,19 @@ Example:
 </vcf-month-picker>
 ```
 
+In TypeScript, the `MonthPickerI18n` type is exported from the package entry point:
+
+```ts
+import type { MonthPickerI18n } from '@vaadin-component-factory/vcf-month-picker';
+
+const i18n: MonthPickerI18n = {
+  monthNames: ['Enero', 'Febrero', /* ... */ 'Diciembre'],
+  monthLabels: ['Ene', 'Feb', /* ... */ 'Dic'],
+  shortMonthNames: ['Ene', 'Feb', /* ... */ 'Dic'], // optional, used for "MMM", defaults to monthLabels
+  formats: ['MM/YYYY'],
+};
+```
+
 ### Custom Year-Month Formats
 The component allows users to define custom formats for displaying and parsing year-month values.
 

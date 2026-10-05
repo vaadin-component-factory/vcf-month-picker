@@ -33,6 +33,7 @@ import { MonthPickerCalendar } from './vcf-month-picker-calendar.js';
 import {
   applyRefCentury,
   monthAllowed,
+  MonthPickerI18n,
   toRefCentury,
   valueToYearMonth,
   YearMonth,
@@ -135,7 +136,7 @@ export class VcfMonthPicker extends SlotStylesMixin(
    * Months names, months labels and month-year formats can be definded here.
    */
   @property({ type: Object })
-  i18n = {
+  i18n: MonthPickerI18n = {
     monthNames: [
       'January',
       'February',
@@ -350,7 +351,7 @@ export class VcfMonthPicker extends SlotStylesMixin(
   protected firstUpdated() {
     (this.textField as any)._onKeyDown = this._onKeyDown.bind(this);
 
-    this._tooltipController = new TooltipController(this, 'tooltip');
+    this._tooltipController = new TooltipController(this);
     this._tooltipController.setPosition('top');
     this._tooltipController.setTarget(this.textField!);
     this.addController(this._tooltipController);
@@ -453,7 +454,7 @@ export class VcfMonthPicker extends SlotStylesMixin(
    * Uses the first format in the `i18n.formats` array as the display format.
    * Falls back to "MM/YYYY" if no formats are defined.
    */
-  static formatValue({ year, month }: YearMonth, i18n: any) {
+  static formatValue({ year, month }: YearMonth, i18n: MonthPickerI18n) {
     if (!i18n.formats?.length) return `${month}/${year}`; // Default format if no custom formats are provided
 
     const format = i18n.formats[0]; // Use the first format to display
@@ -468,7 +469,7 @@ export class VcfMonthPicker extends SlotStylesMixin(
     } else if (!format.includes('MMMM') && format.includes('MMM')) {
       result = format.replace(
         /MMM/,
-        i18n.shortMonthNames[month - 1].padStart(2, '0')
+        (i18n.shortMonthNames ?? i18n.monthLabels)[month - 1].padStart(2, '0')
       );
     } else {
       result = format
@@ -488,7 +489,10 @@ export class VcfMonthPicker extends SlotStylesMixin(
    * Parses a given string into a YearMonth object based on the available formats.
    * Accepts multiple formats from `i18n.formats` and normalizes different separators.
    */
-  static parseValue(inputValue: string, i18n: any): YearMonth | null {
+  static parseValue(
+    inputValue: string,
+    i18n: MonthPickerI18n
+  ): YearMonth | null {
     if (!i18n?.formats?.length) return null;
 
     const { formats } = i18n;
@@ -518,7 +522,10 @@ export class VcfMonthPicker extends SlotStylesMixin(
       if (formatUsesLongMonthName) {
         regex = format.replace(/MMMM/, `(${i18n.monthNames.join('|')})`);
       } else if (formatUsesShortMonthName) {
-        regex = format.replace(/MMM/, `(${i18n.shortMonthNames.join('|')})`);
+        regex = format.replace(
+          /MMM/,
+          `(${(i18n.shortMonthNames ?? i18n.monthLabels).join('|')})`
+        );
       } else {
         regex = format.replace(/MM/, '(\\d{1,2})').replace(/M/, '(\\d{1})'); // Match month (1 or 2 digits)
       }
@@ -551,7 +558,7 @@ export class VcfMonthPicker extends SlotStylesMixin(
               .indexOf(match[monthIndex].toLowerCase()) + 1;
         } else if (formatUsesShortMonthName) {
           month =
-            i18n.shortMonthNames
+            (i18n.shortMonthNames ?? i18n.monthLabels)
               .map((s: string) => s.toLowerCase())
               .indexOf(match[monthIndex].toLowerCase()) + 1;
         } else {

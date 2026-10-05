@@ -28,13 +28,9 @@ import {
   clickOnKey,
   isInvalid,
   isYearDisabled,
+  MonthPickerI18n,
   yearMonthToValue,
 } from './vcf-month-picker-util.js';
-
-interface I18n {
-  monthNames: string[];
-  monthLabels: string[];
-}
 
 /**
  * @element vcf-month-picker-calendar displays a calendar for selecting a month.
@@ -59,7 +55,10 @@ class MonthPickerCalendar extends SlotStylesMixin(
   /**
    * Localization properties for month names and labels.
    */
-  @property({ type: Object }) i18n: I18n = {
+  @property({ type: Object }) i18n: Pick<
+    MonthPickerI18n,
+    'monthNames' | 'monthLabels'
+  > = {
     monthNames: [],
     monthLabels: [],
   };

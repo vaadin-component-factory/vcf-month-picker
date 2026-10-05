@@ -22,8 +22,27 @@ export interface YearMonth {
   month: number;
 }
 
+/**
+ * The object used to localize the month picker.
+ */
+export interface MonthPickerI18n {
+  /** Full month names, January first. Used for the `MMMM` format pattern and ARIA labels. */
+  monthNames: string[];
+  /** Short month labels shown in the calendar overlay, January first. */
+  monthLabels: string[];
+  /** Short month names used for the `MMM` format pattern. Falls back to `monthLabels` when not set. */
+  shortMonthNames?: string[];
+  /**
+   * Year-month formats. The first one is used for display, all of them are accepted when parsing
+   * user input. Falls back to `M/YYYY` display and no parsing when not set.
+   */
+  formats?: string[];
+}
+
 export function yearMonthToValue({ year, month }: YearMonth): string {
-  return `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}`;
+  return `${year.toString().padStart(4, '0')}-${month
+    .toString()
+    .padStart(2, '0')}`;
 }
 
 export function valueToYearMonth(value: string): YearMonth | null {
