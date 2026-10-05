@@ -5,11 +5,11 @@ import '../src/vcf-month-picker.js';
 
 describe('VcfMonthPicker', () => {
   it('has a default header "Hey there" and counter 5', async () => {
-    // const el = await fixture<VcfMonthPicker>(html`<vcf-month-picker></vcf-month-picker>`);
+    // const el = await fixture<VcfMonthPicker>(html`<vcf-month-picker label="Month"></vcf-month-picker>`);
   });
 
   it('increases the counter on button click', async () => {
-    //  const el = await fixture<VcfMonthPicker>(html`<vcf-month-picker></vcf-month-picker>`);
+    //  const el = await fixture<VcfMonthPicker>(html`<vcf-month-picker label="Month"></vcf-month-picker>`);
     //  el.shadowRoot!.querySelector('button')!.click();
   });
 
@@ -19,7 +19,7 @@ describe('VcfMonthPicker', () => {
 
   it('passes the a11y audit', async () => {
     const el = await fixture<VcfMonthPicker>(
-      html`<vcf-month-picker></vcf-month-picker>`
+      html`<vcf-month-picker label="Month"></vcf-month-picker>`
     );
 
     await expect(el).shadowDom.to.be.accessible();
