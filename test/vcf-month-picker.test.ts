@@ -1,5 +1,6 @@
 import { html } from 'lit';
-import { fixture, expect } from '@open-wc/testing';
+import { fixture, expect, nextFrame, waitUntil } from '@open-wc/testing';
+import { resetMouse, sendMouse } from '@web/test-runner-commands';
 import { VcfMonthPicker } from '../src/index.js';
 import '../src/vcf-month-picker.js';
 
@@ -23,5 +24,49 @@ describe('VcfMonthPicker', () => {
     );
 
     await expect(el).shadowDom.to.be.accessible();
+  });
+
+  // https://github.com/vaadin-component-factory/vcf-month-picker/issues/21
+  describe('month click while the field becomes invalid', () => {
+    afterEach(async () => {
+      await resetMouse();
+    });
+
+    it('selects the clicked month', async () => {
+      const el = await fixture<VcfMonthPicker>(
+        html`<vcf-month-picker label="Month"></vcf-month-picker>`
+      );
+      el.opened = true;
+      const calendar = el.querySelector('vcf-month-picker-calendar')!;
+      const month = () =>
+        calendar.shadowRoot!.querySelectorAll<HTMLElement>(
+          '[part~="month"]'
+        )[2];
+      await waitUntil(
+        () => month()?.getBoundingClientRect().height,
+        'calendar did not open'
+      );
+      await nextFrame();
+
+      const rect = month().getBoundingClientRect();
+      await sendMouse({
+        type: 'move',
+        position: [
+          Math.round(rect.left + rect.width / 2),
+          Math.round(rect.top + rect.height / 2),
+        ],
+      });
+      await sendMouse({ type: 'down' });
+
+      // As a form validating on blur does, before the click completes
+      el.invalid = true;
+      el.errorMessage = 'Month is required';
+      await el.updateComplete;
+      await nextFrame();
+
+      await sendMouse({ type: 'up' });
+
+      expect(el.value).to.equal(month().dataset.value);
+    });
   });
 });
