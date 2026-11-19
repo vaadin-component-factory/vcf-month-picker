@@ -43,6 +43,11 @@ import {
 // we assume here, that the browser will not be open till the next century ;)
 const REF_CENTURY_DEFAULT = toRefCentury(new Date().getFullYear());
 
+// Stable value for the popover `trigger` property. A new array on every render
+// would re-render the popover on any property change (e.g. `invalid`), which
+// resets the overlay position target to the whole text field.
+const NO_TRIGGER: never[] = [];
+
 /**
  * `<vcf-month-picker>` is a web component for selecting year and month.
  *
@@ -398,7 +403,7 @@ export class VcfMonthPicker extends SlotStylesMixin(
         <vaadin-popover
           slot="overlay"
           for="${this._uniqueId}"
-          .trigger="${[]}"
+          .trigger="${NO_TRIGGER}"
           .opened="${this.opened}"
           position="bottom-start"
           @opened-changed="${this.__overlayOpenedChanged}"
