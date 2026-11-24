@@ -348,7 +348,12 @@ export class VcfMonthPicker extends SlotStylesMixin(
     this.__renderSlottedContent();
 
     if (this.__dispatchChange && props.has('value')) {
-      this.dispatchEvent(new CustomEvent('value-changed', { bubbles: true }));
+      this.dispatchEvent(
+        new CustomEvent('value-changed', {
+          bubbles: true,
+          detail: { value: this.value },
+        })
+      );
       this.__dispatchChange = false;
     }
   }
