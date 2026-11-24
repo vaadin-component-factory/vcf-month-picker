@@ -1,5 +1,11 @@
 import { html } from 'lit';
-import { fixture, expect, nextFrame, waitUntil } from '@open-wc/testing';
+import {
+  fixture,
+  expect,
+  nextFrame,
+  oneEvent,
+  waitUntil,
+} from '@open-wc/testing';
 import { resetMouse, sendMouse } from '@web/test-runner-commands';
 import { VcfMonthPicker } from '../src/index.js';
 import '../src/vcf-month-picker.js';
@@ -68,5 +74,21 @@ describe('VcfMonthPicker', () => {
 
       expect(el.value).to.equal(month().dataset.value);
     });
+  });
+
+  // https://github.com/vaadin-component-factory/vcf-month-picker/issues/27
+  it('includes the new value in the value-changed event detail', async () => {
+    const el = await fixture<VcfMonthPicker>(
+      html`<vcf-month-picker label="Month"></vcf-month-picker>`
+    );
+    const textField = el.querySelector('vaadin-text-field')!;
+
+    const eventPromise = oneEvent(el, 'value-changed');
+    textField.value = '03.2026';
+    textField.dispatchEvent(new Event('change'));
+    const event = await eventPromise;
+
+    expect(el.value).to.equal('2026-03');
+    expect(event.detail).to.deep.equal({ value: '2026-03' });
   });
 });
